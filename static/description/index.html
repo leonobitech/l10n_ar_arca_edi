@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #875A7B; }
+        h2 { color: #333; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        .badge-success { background: #28a745; color: white; }
+        .badge-info { background: #17a2b8; color: white; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h1>Argentina - ARCA Electronic Invoicing</h1>
+    <p>
+        <span class="badge badge-success">Odoo 19</span>
+        <span class="badge badge-info">Community</span>
+        <span class="badge badge-info">LGPL-3</span>
+    </p>
+
+    <h2>Features</h2>
+    <ul>
+        <li><strong>Certificate Management</strong>: Generate RSA keys and CSR from Odoo</li>
+        <li><strong>WSAA</strong>: Automatic CMS authentication with ARCA</li>
+        <li><strong>WSFEv1</strong>: Electronic invoice authorization (CAE)</li>
+        <li><strong>RG 5616</strong>: Customer IVA condition reporting</li>
+        <li><strong>Dual Environment</strong>: Testing and production support</li>
+    </ul>
+
+    <h2>Supported Documents</h2>
+    <table>
+        <tr><th>Type</th><th>A</th><th>B</th><th>C</th><th>E</th></tr>
+        <tr><td>Factura</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Nota de Débito</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Nota de Crédito</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+    </table>
+
+    <h2>Author</h2>
+    <p><a href="https://leonobitech.com">Leonobitech</a></p>
+</body>
+</html>
