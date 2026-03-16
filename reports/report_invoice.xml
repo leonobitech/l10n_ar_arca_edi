@@ -93,7 +93,7 @@
 
         <!-- Reduce body lateral padding to align with header -->
         <xpath expr="//div[hasclass('page')]" position="attributes">
-            <attribute name="style">margin-left: -14px; margin-right: -14px;</attribute>
+            <attribute name="style">margin-left: -24px; margin-right: -24px;</attribute>
         </xpath>
 
         <!-- Spacer before client section -->
