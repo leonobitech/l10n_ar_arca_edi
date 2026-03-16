@@ -122,10 +122,10 @@
                     <t t-if="o.l10n_ar_arca_cae">
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
-                                <td style="width: 80px; vertical-align: middle; padding-right: 12px;" rowspan="1">
+                                <td style="width: 100px; vertical-align: middle; padding-right: 12px;" rowspan="1">
                                     <t t-if="o.l10n_ar_arca_qr_code">
-                                        <img t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=150&amp;height=150' % o.l10n_ar_arca_qr_code"
-                                            style="width: 70px; height: 70px;"
+                                        <img t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=200&amp;height=200' % o.l10n_ar_arca_qr_code"
+                                            style="width: 90px; height: 90px;"
                                             alt="ARCA QR Code"/>
                                     </t>
                                 </td>
