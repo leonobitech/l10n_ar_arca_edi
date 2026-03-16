@@ -98,7 +98,7 @@
 
         <!-- Spacer before client section -->
         <div id="informations" position="before">
-            <div style="height: 130px; clear: both;">&#160;</div>
+            <div style="height: 160px; clear: both;">&#160;</div>
         </div>
 
         <!-- Add border to client section -->
