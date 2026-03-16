@@ -82,6 +82,80 @@ class AccountMove(models.Model):
         help="URL for ARCA QR code verification (RG 4892/2020).",
     )
 
+    def action_verify_arca(self):
+        """Verify this invoice's CAE against ARCA servers."""
+        self.ensure_one()
+        if not self.l10n_ar_arca_cae:
+            raise UserError(_("This invoice has no CAE to verify."))
+
+        certificate = self.company_id.l10n_ar_arca_certificate_id
+        if not certificate:
+            raise UserError(
+                _("No active ARCA certificate configured for company '%s'.",
+                  self.company_id.name)
+            )
+
+        doc_type_code = self._get_arca_doc_type_code()
+        pos_number = self.journal_id.l10n_ar_afip_pos_number
+        invoice_number = int(
+            self.l10n_latam_document_number.split("-")[-1]
+        )
+
+        wsfe = self.env["l10n_ar.arca.wsfe"]
+        try:
+            result = wsfe.fe_comp_consultar(
+                certificate, pos_number, doc_type_code, invoice_number
+            )
+        except UserError:
+            raise
+        except Exception as e:
+            raise UserError(
+                _("ARCA verification failed: %s", str(e))
+            ) from e
+
+        # Compare CAE from ARCA with local CAE
+        arca_cae = result.CAE if hasattr(result, 'CAE') else None
+        arca_result = result.Resultado if hasattr(result, 'Resultado') else None
+        arca_total = result.ImpTotal if hasattr(result, 'ImpTotal') else None
+        arca_date = result.CbteFch if hasattr(result, 'CbteFch') else None
+
+        env_label = "Testing" if certificate.environment == "testing" else "Production"
+
+        if arca_cae and str(arca_cae) == str(self.l10n_ar_arca_cae):
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("ARCA Verification - %s", env_label),
+                    "message": _(
+                        "CAE verified successfully.\n"
+                        "CAE: %s\n"
+                        "Result: %s\n"
+                        "Total: %s\n"
+                        "Date: %s",
+                        arca_cae, arca_result, arca_total, arca_date,
+                    ),
+                    "type": "success",
+                    "sticky": True,
+                },
+            }
+        else:
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("ARCA Verification - %s", env_label),
+                    "message": _(
+                        "CAE mismatch!\n"
+                        "Local CAE: %s\n"
+                        "ARCA CAE: %s",
+                        self.l10n_ar_arca_cae, arca_cae or "Not found",
+                    ),
+                    "type": "warning",
+                    "sticky": True,
+                },
+            }
+
     def action_request_cae(self):
         """Manually request CAE from ARCA for this invoice."""
         self.ensure_one()

@@ -14,6 +14,12 @@
                     class="btn-secondary"
                     invisible="l10n_ar_arca_cae or state != 'posted' or country_code != 'AR'"
                     groups="account.group_account_invoice"/>
+                <button name="action_verify_arca"
+                    type="object"
+                    string="Verify CAE"
+                    class="btn-secondary"
+                    invisible="not l10n_ar_arca_cae or state != 'posted' or country_code != 'AR'"
+                    groups="account.group_account_invoice"/>
             </xpath>
             <!-- Add ARCA fields in a new page -->
             <xpath expr="//page[@id='other_tab']" position="after">
