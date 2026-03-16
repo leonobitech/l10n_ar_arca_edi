@@ -10,9 +10,9 @@
             <attribute name="t-value">260</attribute>
         </xpath>
 
-        <!-- Add bottom margin to footer SVG so gray zone doesn't touch page edge -->
-        <xpath expr="//div[hasclass('footer')]//svg" position="attributes">
-            <attribute name="style">margin-bottom: 7mm;</attribute>
+        <!-- Add bottom offset to footer so gray zone doesn't touch page edge -->
+        <xpath expr="//div[hasclass('footer')]" position="attributes">
+            <attribute name="style">padding-bottom: 20px;</attribute>
         </xpath>
     </template>
 
