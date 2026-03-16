@@ -17,9 +17,9 @@
     <!-- ============================================================ -->
     <template id="custom_header" inherit_id="l10n_ar.custom_header">
 
-        <!-- Add padding-top to main header container for Wave layout -->
+        <!-- Add padding to header container for Wave layout -->
         <xpath expr="//div[hasclass('mb-3')]" position="attributes">
-            <attribute name="style">padding-left: 20px; padding-right: 20px;</attribute>
+            <attribute name="style">padding-top: 38px; padding-left: 20px; padding-right: 20px;</attribute>
         </xpath>
 
         <!-- Replace company info with structured layout -->
