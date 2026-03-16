@@ -18,11 +18,10 @@
                         <t t-out="', '.join([item for item in [header_address.state_id and header_address.state_id.name, header_address.country_id and header_address.country_id.name] if item])"/>.
                     </div>
                     <div style="margin-top: 3px; font-size: 0.85em;">
-                        <div t-if="header_address.phone">
-                            &#9742; <span t-out="header_address.phone"/>
-                        </div>
-                        <div t-if="header_address.email">
-                            &#9993; <span t-out="header_address.email"/>
+                        <div>
+                            <span t-if="header_address.phone">&#9742; <span t-out="header_address.phone"/></span>
+                            <span t-if="header_address.phone and header_address.email"> | </span>
+                            <span t-if="header_address.email"><strong>&#9993;</strong> <span t-out="header_address.email"/></span>
                         </div>
                         <div t-if="header_address.website">
                             <strong t-out="(header_address.website or '').replace('https://', '').replace('http://', '')"/>
