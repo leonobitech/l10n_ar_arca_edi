@@ -19,7 +19,7 @@
 
         <!-- Add padding-top to main header container for Wave layout -->
         <xpath expr="//div[hasclass('mb-3')]" position="attributes">
-            <attribute name="style">padding: 20px;</attribute>
+            <attribute name="style">padding-top: 26px; padding-left: 20px; padding-right: 20px;</attribute>
         </xpath>
 
         <!-- Replace company info with structured layout -->
