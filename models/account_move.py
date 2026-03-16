@@ -224,34 +224,46 @@ class AccountMove(models.Model):
 
         # Amounts
         total = abs(self.amount_total)
-        iva_total = 0
-        net_taxed = 0
-        tax_exempt = 0
-        iva_lines = []
 
-        for tax_line in self.line_ids.filtered(
-            lambda l: l.tax_line_id
-            and l.tax_line_id.tax_group_id.l10n_ar_vat_afip_code
-        ):
-            afip_code = int(
-                tax_line.tax_line_id.tax_group_id.l10n_ar_vat_afip_code
-            )
-            amount = abs(tax_line.balance)
-            base = abs(tax_line.tax_base_amount)
+        # Factura C (codes 11, 13, 15) does not discriminate IVA
+        # All amount goes to ImpNeto, everything else is 0
+        is_type_c = doc_type_code in (11, 13, 15)
 
-            if afip_code == 3:  # Exento
-                tax_exempt += base
-            else:
-                iva_total += amount
-                net_taxed += base
-                iva_lines.append({
-                    "iva_id": afip_code,
-                    "base": base,
-                    "amount": amount,
-                })
+        if is_type_c:
+            net_taxed = total
+            net_untaxed = 0
+            tax_exempt = 0
+            iva_total = 0
+            iva_lines = []
+        else:
+            iva_total = 0
+            net_taxed = 0
+            tax_exempt = 0
+            iva_lines = []
 
-        # Net untaxed (no gravado)
-        net_untaxed = total - net_taxed - iva_total - tax_exempt
+            for tax_line in self.line_ids.filtered(
+                lambda l: l.tax_line_id
+                and l.tax_line_id.tax_group_id.l10n_ar_vat_afip_code
+            ):
+                afip_code = int(
+                    tax_line.tax_line_id.tax_group_id.l10n_ar_vat_afip_code
+                )
+                amount = abs(tax_line.balance)
+                base = abs(tax_line.tax_base_amount)
+
+                if afip_code == 3:  # Exento
+                    tax_exempt += base
+                else:
+                    iva_total += amount
+                    net_taxed += base
+                    iva_lines.append({
+                        "iva_id": afip_code,
+                        "base": base,
+                        "amount": amount,
+                    })
+
+            # Net untaxed (no gravado)
+            net_untaxed = total - net_taxed - iva_total - tax_exempt
 
         data = {
             "pos_number": journal.l10n_ar_afip_pos_number,

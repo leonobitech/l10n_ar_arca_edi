@@ -58,6 +58,7 @@ ARCA Web Services:
         "views/res_config_settings_views.xml",
         "views/account_move_views.xml",
         "views/account_journal_views.xml",
+        "reports/report_invoice.xml",
         "data/ir_cron_data.xml",
     ],
     "assets": {
