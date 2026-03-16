@@ -6,81 +6,46 @@
     <!-- ============================================================ -->
     <template id="custom_header" inherit_id="l10n_ar.custom_header">
 
-        <!-- Replace company info (left side) with structured layout -->
-        <div name="left-upper-side" position="replace">
-            <div name="left-upper-side" class="col-5" t-if="not pre_printed_report">
-                <img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)" style="max-height: 65px;" alt="Logo"/>
-            </div>
-        </div>
-
-        <!-- Replace the company details row -->
-        <xpath expr="//div[@class='row'][2]" position="replace">
-            <div class="row" style="border-top: 2px solid #dee2e6; padding-top: 6px; margin-top: 4px;">
-                <div class="col-6" style="padding-right: 0px;">
-                    <t t-if="not pre_printed_report">
-                        <!-- Company name - prominent -->
-                        <strong style="font-size: 1.1em;" t-field="o.company_id.partner_id.name"/>
-
-                        <!-- Address in smaller text -->
-                        <div style="font-size: 0.9em; color: #444; margin-top: 2px;">
-                            <t t-out="', '.join([item for item in [
-                                ', '.join([item for item in [header_address.street, header_address.street2] if item]),
-                                header_address.city,
-                                header_address.state_id and header_address.state_id.name,
-                                header_address.zip,
-                                header_address.country_id and header_address.country_id.name] if item])"/>
-                        </div>
-
-                        <!-- Phone + web/email on separate line -->
-                        <div style="font-size: 0.9em; margin-top: 2px;">
-                            <span t-if="header_address.phone" style="white-space: nowrap;">
-                                <strong>Tel:</strong> <span t-out="header_address.phone"/>
-                            </span>
-                            <span t-if="header_address.phone and ((header_address.website or '') + (header_address.email or ''))"> | </span>
-                            <span t-att-style="'color: %s;' % o.company_id.primary_color"
-                                t-out="' - '.join([item for item in [(header_address.website or '').replace('https://', '').replace('http://', ''), header_address.email] if item])"/>
-                        </div>
-                    </t>
-                </div>
-                <div id="l10n_ar_header_right" class="col-6 text-end" style="padding-left: 0px; font-size: 0.95em;">
-                    <t t-if="not pre_printed_report">
-                        <!-- Invoice number -->
-                        <div>
-                            <span style="color: #666;">Nro:</span>
-                            <strong t-out="report_number"/>
-                        </div>
-                    </t>
-
-                    <!-- Date -->
+        <!-- Replace right side: invoice number, date, fiscal data -->
+        <div id="l10n_ar_header_right" position="replace">
+            <div id="l10n_ar_header_right" class="col-6 text-end" style="padding-left: 0px; font-size: 0.95em;">
+                <t t-if="not pre_printed_report">
+                    <!-- Invoice number -->
                     <div>
-                        <span style="color: #666;">Fecha:</span>
-                        <strong t-out="report_date" t-options='{"widget": "date"}'/>
+                        <span style="color: #666;">Nro:</span>
+                        <strong t-out="report_number"/>
+                    </div>
+                </t>
+
+                <!-- Date -->
+                <div>
+                    <span style="color: #666;">Fecha:</span>
+                    <strong t-out="report_date" t-options='{"widget": "date"}'/>
+                </div>
+
+                <t t-if="not pre_printed_report">
+                    <!-- Responsibility + CUIT -->
+                    <div style="margin-top: 2px;">
+                        <span t-field="o.company_id.l10n_ar_afip_responsibility_type_id"/>
+                    </div>
+                    <div>
+                        <span style="color: #666;">CUIT:</span>
+                        <strong t-field="o.company_id.partner_id.l10n_ar_formatted_vat"/>
                     </div>
 
-                    <t t-if="not pre_printed_report">
-                        <!-- Responsibility + CUIT -->
-                        <div style="margin-top: 2px;">
-                            <span t-field="o.company_id.l10n_ar_afip_responsibility_type_id"/>
-                        </div>
-                        <div>
-                            <span style="color: #666;">CUIT:</span>
-                            <strong t-field="o.company_id.partner_id.l10n_ar_formatted_vat"/>
-                        </div>
-
-                        <!-- IIBB + Activities Start -->
-                        <div style="font-size: 0.9em; color: #555;">
-                            <span>IIBB: </span>
-                            <span t-if="o.company_id.l10n_ar_gross_income_type == 'exempt'">Exento</span>
-                            <span t-elif="o.company_id.l10n_ar_gross_income_number" t-out="o.company_id.l10n_ar_gross_income_number"/>
-                            <span t-else="">No inscripto</span>
-                            <span t-if="o.company_id.l10n_ar_afip_start_date">
-                                 | Inicio Act.: <span t-field="o.company_id.l10n_ar_afip_start_date"/>
-                            </span>
-                        </div>
-                    </t>
-                </div>
+                    <!-- IIBB + Activities Start -->
+                    <div style="font-size: 0.9em; color: #555;">
+                        <span>IIBB: </span>
+                        <span t-if="o.company_id.l10n_ar_gross_income_type == 'exempt'">Exento</span>
+                        <span t-elif="o.company_id.l10n_ar_gross_income_number" t-out="o.company_id.l10n_ar_gross_income_number"/>
+                        <span t-else="">No inscripto</span>
+                        <span t-if="o.company_id.l10n_ar_afip_start_date">
+                             | Inicio Act.: <span t-field="o.company_id.l10n_ar_afip_start_date"/>
+                        </span>
+                    </div>
+                </t>
             </div>
-        </xpath>
+        </div>
 
     </template>
 
