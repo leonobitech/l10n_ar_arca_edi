@@ -21,14 +21,17 @@
                         <t t-out="', '.join([item for item in [header_address.state_id and header_address.state_id.name, header_address.country_id and header_address.country_id.name] if item])"/><t t-if="header_address.zip" t-out="'.'"/>
                     </div>
 
-                    <!-- Contact info - compact -->
-                    <div style="margin-top: 2px; font-size: 0.80em;">
-                        <t t-set="contact_parts" t-value="[
-                            header_address.phone and ('Tel: ' + header_address.phone),
-                            header_address.email,
-                            header_address.website and (header_address.website or '').replace('https://', '').replace('http://', ''),
-                        ]"/>
-                        <span t-out="' | '.join([p for p in contact_parts if p])"/>
+                    <!-- Contact info -->
+                    <div style="margin-top: 3px; font-size: 0.85em;">
+                        <div t-if="header_address.phone">
+                            <strong>Tel:</strong> <span t-out="header_address.phone"/>
+                        </div>
+                        <div t-if="header_address.email">
+                            <strong>Email:</strong> <span t-out="header_address.email"/>
+                        </div>
+                        <div t-if="header_address.website">
+                            <span t-out="(header_address.website or '').replace('https://', '').replace('http://', '')"/>
+                        </div>
                     </div>
                 </t>
             </div>
@@ -85,7 +88,8 @@
 
         <!-- Replace informations section with better layout -->
         <div id="informations" position="replace">
-            <div id="informations" class="row mb-2" style="border: 1px solid #dee2e6; border-radius: 4px; padding: 8px 12px; margin-left: 0; margin-right: 0; margin-top: 20px;">
+            <div style="clear: both; padding-top: 15px;"><!-- spacer --></div>
+            <div id="informations" class="row mb-2" style="border: 1px solid #dee2e6; border-radius: 4px; padding: 8px 12px; margin-left: 0; margin-right: 0;">
                 <div class="col-7" style="border-right: 1px solid #dee2e6; padding-right: 12px;">
 
                     <!-- Customer label -->
