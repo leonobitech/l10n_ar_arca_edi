@@ -120,6 +120,9 @@
             <t t-set="custom_footer">
                 <div class="row" style="font-size: 0.85em; margin-bottom: 15px;">
                     <t t-if="o.l10n_ar_arca_cae">
+                        <div class="col-12" style="margin-bottom: 4px;">
+                            <span style="font-size: 0.65em; color: #666;">Factura electrónica autorizada por ARCA (ex-AFIP) conforme RG 4892/2020 y RG 2485. Verifique este documento escaneando el código QR.</span>
+                        </div>
                         <div class="col-2 text-start" style="padding-left: 15px;">
                             <t t-if="o.l10n_ar_arca_qr_code">
                                 <img t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=150&amp;height=150' % o.l10n_ar_arca_qr_code"
