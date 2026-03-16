@@ -30,8 +30,7 @@
                             <strong>Email:</strong> <span t-out="header_address.email"/>
                         </div>
                         <div t-if="header_address.website">
-                            <span t-att-style="'color: %s;' % o.company_id.primary_color"
-                                t-out="(header_address.website or '').replace('https://', '').replace('http://', '')"/>
+                            <span t-out="(header_address.website or '').replace('https://', '').replace('http://', '')"/>
                         </div>
                     </div>
                 </t>
@@ -44,14 +43,14 @@
                 <t t-if="not pre_printed_report">
                     <!-- Invoice number -->
                     <div>
-                        <span style="color: #666;">Nro:</span>
+                        <span style="color: #000;">Factura N°</span>
                         <strong t-out="report_number"/>
                     </div>
                 </t>
 
                 <!-- Date -->
                 <div>
-                    <span style="color: #666;">Fecha:</span>
+                    <span style="color: #000;">Fecha de Factura:</span>
                     <strong t-out="report_date" t-options='{"widget": "date"}'/>
                 </div>
 
@@ -61,12 +60,12 @@
                         <span t-field="o.company_id.l10n_ar_afip_responsibility_type_id"/>
                     </div>
                     <div>
-                        <span style="color: #666;">CUIT:</span>
+                        <span style="color: #000;">CUIT:</span>
                         <strong t-field="o.company_id.partner_id.l10n_ar_formatted_vat"/>
                     </div>
 
                     <!-- IIBB + Activities Start -->
-                    <div style="font-size: 0.9em; color: #555;">
+                    <div style="font-size: 0.9em; color: #000;">
                         <span>IIBB: </span>
                         <span t-if="o.company_id.l10n_ar_gross_income_type == 'exempt'">Exento</span>
                         <span t-elif="o.company_id.l10n_ar_gross_income_number" t-out="o.company_id.l10n_ar_gross_income_number"/>
@@ -93,7 +92,7 @@
                 <div class="col-7" style="border-right: 1px solid #dee2e6; padding-right: 12px;">
 
                     <!-- Customer label -->
-                    <div style="font-size: 0.8em; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+                    <div style="font-size: 0.8em; color: #000; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
                         <t t-if="o.is_sale_document(include_receipts=True)">Cliente</t>
                         <t t-else="">Proveedor</t>
                     </div>
@@ -102,7 +101,7 @@
                     <strong style="font-size: 1.05em;" t-field="o.partner_id.commercial_partner_id.name"/>
 
                     <!-- Address -->
-                    <div style="font-size: 0.9em; color: #444; margin-top: 2px;">
+                    <div style="font-size: 0.9em; color: #000; margin-top: 2px;">
                         <span t-field="o.partner_id" t-options="{'widget': 'contact', 'fields': ['address'], 'no_marker': true, 'no_tag_br': True}"/>
                     </div>
 
@@ -124,7 +123,7 @@
                     <!-- Due Date - prominent -->
                     <t t-if="o.invoice_date_due">
                         <div style="margin-bottom: 6px;">
-                            <div style="font-size: 0.8em; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Vencimiento</div>
+                            <div style="font-size: 0.8em; color: #000; text-transform: uppercase; letter-spacing: 0.5px;">Vencimiento</div>
                             <strong style="font-size: 1.05em;" t-field="o.invoice_date_due"/>
                         </div>
                     </t>
@@ -210,6 +209,16 @@
             </t>
         </t>
 
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Override "Total" label to "TOTAL A PAGAR"                    -->
+    <!-- ============================================================ -->
+    <template id="document_tax_totals_template"
+        inherit_id="account.document_tax_totals_template">
+        <xpath expr="//tr[@class='o_total']/td/strong" position="replace">
+            <strong>TOTAL A PAGAR</strong>
+        </xpath>
     </template>
 
 </odoo>
