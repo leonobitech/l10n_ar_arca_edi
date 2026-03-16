@@ -8,7 +8,7 @@
 
         <!-- Make company name more prominent -->
         <xpath expr="//span[@t-field='o.company_id.partner_id.name']" position="replace">
-            <strong style="font-size: 1.1em;" t-field="o.company_id.partner_id.name"/>
+            <strong style="font-size: 1.3em;" t-field="o.company_id.partner_id.name"/>
         </xpath>
 
         <!-- Replace right side: invoice number, date, fiscal data -->
