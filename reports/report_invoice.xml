@@ -22,7 +22,7 @@
                     </div>
 
                     <!-- Contact info -->
-                    <div style="margin-top: 3px; font-size: 0.9em;">
+                    <div style="margin-top: 3px; margin-bottom: 8px; font-size: 0.9em;">
                         <span t-if="header_address.phone" style="white-space: nowrap;">
                             <strong>Tel:</strong> <span t-out="header_address.phone"/>
                         </span>
