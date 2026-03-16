@@ -120,6 +120,10 @@
             <t t-set="custom_footer">
                 <div style="font-size: 0.85em;">
                     <t t-if="o.l10n_ar_arca_cae">
+                        <div style="font-size: 0.8em; color: #555; margin-bottom: 6px;">
+                            Factura electrónica autorizada por ARCA (ex-AFIP) conforme RG 4892/2020 y RG 2485.
+                            Verifique este documento escaneando el código QR.
+                        </div>
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
                                 <td style="width: 90px; vertical-align: top; padding-right: 10px;">
@@ -138,10 +142,6 @@
                                             t-out="'%s/%s/%s' % (cae_due[6:8], cae_due[4:6], cae_due[0:4])"/>
                                         <span t-else="" t-out="cae_due"/>
                                     </span>
-                                    <div style="font-size: 0.8em; color: #555; margin-top: 4px;">
-                                        Factura electrónica autorizada por ARCA (ex-AFIP) conforme RG 4892/2020 y RG 2485.
-                                        Verifique este documento escaneando el código QR.
-                                    </div>
                                 </td>
                                 <td style="width: 100px; vertical-align: top; text-align: right;">
                                     <div t-if="report_type == 'pdf'">
