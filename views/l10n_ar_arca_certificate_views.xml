@@ -41,6 +41,11 @@
                         string="Upload Certificate"
                         class="btn-primary"
                         invisible="state != 'csr_generated'"/>
+                    <button name="action_test_connection"
+                        type="object"
+                        string="Test Connection"
+                        class="btn-secondary"
+                        invisible="state != 'active'"/>
                     <button name="action_revoke"
                         type="object"
                         string="Revoke"
@@ -133,10 +138,11 @@
         </field>
     </record>
 
-    <!-- Menu Items -->
+    <!-- Menu Items: ARCA section inside Invoicing > Configuration -->
     <menuitem id="l10n_ar_arca_menu_root"
         name="ARCA"
         parent="account.menu_finance_configuration"
+        groups="account.group_account_manager,base.group_system"
         sequence="90"/>
 
     <menuitem id="l10n_ar_arca_menu_certificates"

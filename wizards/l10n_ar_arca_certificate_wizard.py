@@ -16,7 +16,7 @@ class L10nArArcaCertificateWizard(models.TransientModel):
         required=True,
     )
     certificate_file = fields.Binary(
-        string="Certificate File (.crt / .pem)",
+        string="Certificate File (.crt)",
         required=True,
     )
     certificate_filename = fields.Char(string="Filename")
@@ -32,8 +32,8 @@ class L10nArArcaCertificateWizard(models.TransientModel):
         if b"-----BEGIN CERTIFICATE-----" not in cert_data:
             raise UserError(
                 _(
-                    "Invalid certificate format. Please upload a PEM-encoded "
-                    "certificate (.crt or .pem file)."
+                    "Invalid certificate format. Please upload the .crt file "
+                    "downloaded from the ARCA portal."
                 )
             )
 

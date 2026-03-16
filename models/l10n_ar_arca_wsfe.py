@@ -10,57 +10,72 @@ from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
-# WSFEv1 endpoints
+# WSFEv1 endpoints (Mercado Interno: Facturas A, B, C, M)
 WSFE_URL = {
     "testing": "https://wswhomo.afip.gov.ar/wsfev1/service.asmx?WSDL",
     "production": "https://servicios1.afip.gov.ar/wsfev1/service.asmx?WSDL",
 }
 
-# ARCA document type mapping (código de comprobante)
+# WSFEXv1 endpoints (Exportación: Facturas E)
+WSFEX_URL = {
+    "testing": "https://wswhomo.afip.gov.ar/wsfexv1/service.asmx?WSDL",
+    "production": "https://servicios1.afip.gov.ar/wsfexv1/service.asmx?WSDL",
+}
+
+# WSBFEv1 endpoints (Bonos Fiscales Electrónicos)
+WSBFE_URL = {
+    "testing": "https://wswhomo.afip.gov.ar/wsbfev1/service.asmx?WSDL",
+    "production": "https://servicios1.afip.gov.ar/wsbfev1/service.asmx?WSDL",
+}
+
+# WSCDC endpoints (Constatación de Comprobantes)
+WSCDC_URL = {
+    "testing": "https://wswhomo.afip.gov.ar/WSCDC/service.asmx?WSDL",
+    "production": "https://servicios1.afip.gov.ar/WSCDC/service.asmx?WSDL",
+}
+
+# WS_SR_CONSTANCIA_INSCRIPCION endpoints (Consulta de Padrón)
+WS_PADRON_URL = {
+    "testing": "https://awshomo.afip.gov.ar/sr-padron/webservices/personaServiceA5?WSDL",
+    "production": "https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA5?WSDL",
+}
+
+# ARCA document type codes (código de comprobante)
 ARCA_DOC_TYPES = {
     # Facturas
-    "FA-A": 1,     # Factura A
-    "FA-B": 6,     # Factura B
-    "FA-C": 11,    # Factura C
-    "FA-E": 19,    # Factura E (exportación)
+    1: "Factura A",
+    6: "Factura B",
+    11: "Factura C",
+    19: "Factura E",
+    51: "Factura M",
     # Notas de Débito
-    "ND-A": 2,     # Nota de Débito A
-    "ND-B": 7,     # Nota de Débito B
-    "ND-C": 12,    # Nota de Débito C
-    "ND-E": 20,    # Nota de Débito E
+    2: "Nota de Débito A",
+    7: "Nota de Débito B",
+    12: "Nota de Débito C",
+    20: "Nota de Débito E",
     # Notas de Crédito
-    "NC-A": 3,     # Nota de Crédito A
-    "NC-B": 8,     # Nota de Crédito B
-    "NC-C": 13,    # Nota de Crédito C
-    "NC-E": 21,    # Nota de Crédito E
+    3: "Nota de Crédito A",
+    8: "Nota de Crédito B",
+    13: "Nota de Crédito C",
+    21: "Nota de Crédito E",
     # Recibos
-    "RE-A": 4,     # Recibo A
-    "RE-B": 9,     # Recibo B
-    "RE-C": 15,    # Recibo C
+    4: "Recibo A",
+    9: "Recibo B",
+    15: "Recibo C",
+    # Facturas de Crédito MiPyme
+    201: "Factura de Crédito MiPyme A",
+    206: "Factura de Crédito MiPyme B",
+    211: "Factura de Crédito MiPyme C",
 }
 
 # ARCA concept types
 ARCA_CONCEPT_TYPES = {
-    "product": 1,       # Productos
-    "service": 2,       # Servicios
-    "product_service": 3,  # Productos y Servicios
+    1: "Productos",
+    2: "Servicios",
+    3: "Productos y Servicios",
 }
 
-# ARCA document types for customer identification
-ARCA_ID_DOC_TYPES = {
-    "CUIT": 80,
-    "CUIL": 86,
-    "CDI": 87,
-    "DNI": 96,
-    "CI": 89,        # Cédula de Identidad
-    "LC": 90,        # Libreta Cívica
-    "LE": 91,        # Libreta de Enrolamiento
-    "passport": 94,
-    "other": 99,
-    "final_consumer": 99,  # Consumidor Final (doc nro = 0)
-}
-
-# IVA aliquot codes
+# ARCA IVA aliquot codes
 ARCA_IVA_CODES = {
     0: 3,       # 0% (Exento)
     2.5: 9,     # 2.5%
@@ -70,29 +85,56 @@ ARCA_IVA_CODES = {
     27: 6,      # 27%
 }
 
+# ARCA document types for customer identification
+ARCA_ID_DOC_TYPES = {
+    "CUIT": 80,
+    "CUIL": 86,
+    "CDI": 87,
+    "DNI": 96,
+    "CI": 89,
+    "LC": 90,
+    "LE": 91,
+    "passport": 94,
+    "other": 99,
+    "final_consumer": 99,
+}
+
+# WSAA service names for each web service
+WSAA_SERVICE_NAMES = {
+    "wsfe": "wsfe",
+    "wsfex": "wsfex",
+    "wsbfe": "wsbfe",
+    "ws_sr_constancia_inscripcion": "ws_sr_constancia_inscripcion",
+}
+
 
 class L10nArArcaWsfe(models.Model):
     _name = "l10n_ar.arca.wsfe"
     _description = "ARCA WSFEv1 Electronic Invoice Service"
 
     @api.model
-    def _get_client(self, certificate):
-        """Get a zeep SOAP client for WSFEv1."""
-        wsdl_url = WSFE_URL[certificate.environment]
+    def _get_client(self, certificate, service_urls=None):
+        """Get a zeep SOAP client for the given service."""
+        urls = service_urls or WSFE_URL
+        wsdl_url = urls[certificate.environment]
         transport = Transport(timeout=30, operation_timeout=30)
         return Client(wsdl_url, transport=transport)
 
     @api.model
-    def _get_auth(self, certificate):
-        """Get the Auth dict required by all WSFEv1 methods."""
+    def _get_auth(self, certificate, service="wsfe"):
+        """Get the Auth dict required by all ARCA WS methods."""
         wsaa = self.env["l10n_ar.arca.wsaa"]
-        credentials = wsaa._get_or_refresh_token(certificate, service="wsfe")
+        credentials = wsaa._get_or_refresh_token(certificate, service=service)
         cuit = certificate.cuit.replace("-", "").replace(" ", "")
         return {
             "Token": credentials["token"],
             "Sign": credentials["sign"],
             "Cuit": int(cuit),
         }
+
+    # -------------------------------------------------------------------------
+    # WSFEv1 Methods (Mercado Interno)
+    # -------------------------------------------------------------------------
 
     @api.model
     def fe_comp_ultimo_autorizado(self, certificate, pos_number, doc_type_code):
@@ -119,42 +161,15 @@ class L10nArArcaWsfe(models.Model):
             ) from e
 
         self._check_wsfe_errors(response)
-
         return response.CbteNro
 
     @api.model
     def fe_cae_solicitar(self, certificate, invoice_data):
         """
-        FECAESolicitar: Request CAE (Código de Autorización Electrónico)
-        for one or more invoices.
+        FECAESolicitar: Request CAE for an invoice.
 
         :param certificate: l10n_ar.arca.certificate record
-        :param invoice_data: dict with invoice details:
-            {
-                'pos_number': int,
-                'doc_type_code': int,
-                'concept': int (1=products, 2=services, 3=both),
-                'customer_doc_type': int (80=CUIT, 96=DNI, etc),
-                'customer_doc_number': str,
-                'invoice_number': int,
-                'date': str (YYYYMMDD),
-                'total': float,
-                'net_untaxed': float,
-                'net_taxed': float,
-                'tax_exempt': float,
-                'iva_total': float,
-                'iva_lines': list of dicts [{
-                    'iva_id': int,  # ARCA IVA code
-                    'base': float,
-                    'amount': float,
-                }],
-                'service_date_from': str (YYYYMMDD, for services),
-                'service_date_to': str (YYYYMMDD, for services),
-                'payment_due_date': str (YYYYMMDD, for services),
-                'associated_docs': list of dicts (for credit/debit notes),
-                'currency_code': str (default 'PES'),
-                'currency_rate': float (default 1),
-            }
+        :param invoice_data: dict with invoice details
         :returns: dict with 'cae', 'cae_due_date', 'result'
         """
         client = self._get_client(certificate)
@@ -180,8 +195,12 @@ class L10nArArcaWsfe(models.Model):
 
         # Service dates (required for concept 2 and 3)
         if invoice_data["concept"] in (2, 3):
-            detail["FchServDesde"] = invoice_data.get("service_date_from", "")
-            detail["FchServHasta"] = invoice_data.get("service_date_to", "")
+            detail["FchServDesde"] = invoice_data.get(
+                "service_date_from", ""
+            )
+            detail["FchServHasta"] = invoice_data.get(
+                "service_date_to", ""
+            )
             detail["FchVtoPago"] = invoice_data.get("payment_due_date", "")
 
         # IVA lines
@@ -228,7 +247,7 @@ class L10nArArcaWsfe(models.Model):
         }
 
         _logger.info(
-            "WSFE: Requesting CAE for %s-%s-%08d",
+            "WSFE: Requesting CAE for PtoVta=%s CbteTipo=%s Nro=%08d",
             invoice_data["pos_number"],
             invoice_data["doc_type_code"],
             invoice_data["invoice_number"],
@@ -244,8 +263,6 @@ class L10nArArcaWsfe(models.Model):
             ) from e
 
         self._check_wsfe_errors(response)
-
-        # Extract CAE from response
         result = self._parse_cae_response(response)
 
         _logger.info(
@@ -294,7 +311,21 @@ class L10nArArcaWsfe(models.Model):
         return response.ResultGet.IvaTipo if response.ResultGet else []
 
     @api.model
-    def fe_comp_consultar(self, certificate, pos_number, doc_type_code, invoice_number):
+    def fe_param_get_ptos_venta(self, certificate):
+        """FEParamGetPtosVenta: Get enabled points of sale."""
+        client = self._get_client(certificate)
+        auth = self._get_auth(certificate)
+        try:
+            response = client.service.FEParamGetPtosVenta(Auth=auth)
+        except Exception as e:
+            raise UserError(str(e)) from e
+        self._check_wsfe_errors(response)
+        return response.ResultGet.PtoVenta if response.ResultGet else []
+
+    @api.model
+    def fe_comp_consultar(
+        self, certificate, pos_number, doc_type_code, invoice_number
+    ):
         """FECompConsultar: Query an existing authorized invoice."""
         client = self._get_client(certificate)
         auth = self._get_auth(certificate)
@@ -311,6 +342,59 @@ class L10nArArcaWsfe(models.Model):
             raise UserError(str(e)) from e
         self._check_wsfe_errors(response)
         return response.ResultGet
+
+    # -------------------------------------------------------------------------
+    # WSCDC Methods (Constatación de Comprobantes)
+    # -------------------------------------------------------------------------
+
+    @api.model
+    def cdc_constatar_comprobante(
+        self, certificate, doc_type, pos_number, invoice_number,
+        date, total, cuit_emisor, doc_tipo_receptor, doc_nro_receptor,
+    ):
+        """
+        ComprobanteConstatar: Verify an invoice's validity via WSCDC.
+
+        :returns: dict with verification result
+        """
+        client = self._get_client(certificate, service_urls=WSCDC_URL)
+        wsaa = self.env["l10n_ar.arca.wsaa"]
+        credentials = wsaa._get_or_refresh_token(certificate, service="wsfe")
+        cuit = certificate.cuit.replace("-", "").replace(" ", "")
+
+        try:
+            response = client.service.ComprobanteConstatar(
+                Auth={
+                    "Token": credentials["token"],
+                    "Sign": credentials["sign"],
+                    "Cuit": int(cuit),
+                },
+                CmpReq={
+                    "CbteModo": "CAE",
+                    "CuitEmisor": int(cuit_emisor),
+                    "PtoVta": pos_number,
+                    "CbteTipo": doc_type,
+                    "CbteNro": invoice_number,
+                    "CbteFch": date,
+                    "ImpTotal": total,
+                    "CodAutorizacion": "",
+                    "DocTipoReceptor": doc_tipo_receptor,
+                    "DocNroReceptor": int(doc_nro_receptor),
+                },
+            )
+        except Exception as e:
+            raise UserError(
+                _("WSCDC verification failed: %s", str(e))
+            ) from e
+
+        return {
+            "result": response.Resultado if hasattr(response, "Resultado") else None,
+            "observations": str(response.Observaciones) if hasattr(response, "Observaciones") else "",
+        }
+
+    # -------------------------------------------------------------------------
+    # Helpers
+    # -------------------------------------------------------------------------
 
     @api.model
     def _parse_cae_response(self, response):

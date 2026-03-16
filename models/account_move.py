@@ -7,31 +7,19 @@ from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
-# Mapping from Odoo l10n_ar document type codes to ARCA CbteTipo codes
-L10N_AR_TO_ARCA_DOC_TYPE = {
-    # l10n_ar internal_type + letter -> ARCA code
-    1: 1,     # Factura A
-    2: 2,     # Nota de Débito A
-    3: 3,     # Nota de Crédito A
-    6: 6,     # Factura B
-    7: 7,     # Nota de Débito B
-    8: 8,     # Nota de Crédito B
-    11: 11,   # Factura C
-    12: 12,   # Nota de Débito C
-    13: 13,   # Nota de Crédito C
-    19: 19,   # Factura E
-    20: 20,   # Nota de Débito E
-    21: 21,   # Nota de Crédito E
-}
-
-# ARCA IVA aliquot ID mapping
-IVA_RATE_TO_ARCA = {
-    0: 3,       # Exento
-    2.5: 9,
-    5: 8,
-    10.5: 4,
-    21: 5,
-    27: 6,
+# Mapping from l10n_ar document type codes to ARCA CbteTipo codes
+# l10n_ar uses the same codes as ARCA, so this is a validation set
+SUPPORTED_ARCA_DOC_TYPES = {
+    # Facturas
+    1, 6, 11, 19, 51,
+    # Notas de Débito
+    2, 7, 12, 20,
+    # Notas de Crédito
+    3, 8, 13, 21,
+    # Recibos
+    4, 9, 15,
+    # Facturas de Crédito MiPyme
+    201, 206, 211,
 }
 
 # ARCA responsibility -> condition IVA receptor (RG 5616)
@@ -79,6 +67,12 @@ class AccountMove(models.Model):
         readonly=True,
         copy=False,
     )
+    l10n_ar_arca_barcode = fields.Char(
+        string="ARCA Barcode",
+        readonly=True,
+        copy=False,
+        help="Barcode data for Interleaved 2 of 5 code on invoice PDF.",
+    )
 
     def action_request_cae(self):
         """Manually request CAE from ARCA for this invoice."""
@@ -93,9 +87,11 @@ class AccountMove(models.Model):
             "tag": "display_notification",
             "params": {
                 "title": _("CAE Obtained"),
-                "message": _("CAE: %s (valid until %s)",
-                             self.l10n_ar_arca_cae,
-                             self.l10n_ar_arca_cae_due_date),
+                "message": _(
+                    "CAE: %s (valid until %s)",
+                    self.l10n_ar_arca_cae,
+                    self.l10n_ar_arca_cae_due_date,
+                ),
                 "type": "success",
                 "sticky": False,
             },
@@ -131,16 +127,20 @@ class AccountMove(models.Model):
         certificate = self.company_id.l10n_ar_arca_certificate_id
         if not certificate:
             raise UserError(
-                _("No active ARCA certificate configured for company '%s'. "
-                  "Go to Settings > Accounting > ARCA Certificate.",
-                  self.company_id.name)
+                _(
+                    "No active ARCA certificate configured for company '%s'. "
+                    "Go to Settings > Accounting > ARCA Certificate.",
+                    self.company_id.name,
+                )
             )
 
         journal = self.journal_id
         if not journal.l10n_ar_arca_edi_enabled:
             raise UserError(
-                _("ARCA electronic invoicing is not enabled for journal '%s'.",
-                  journal.name)
+                _(
+                    "ARCA electronic invoicing is not enabled for journal '%s'.",
+                    journal.name,
+                )
             )
 
         # Get document type code
@@ -163,6 +163,11 @@ class AccountMove(models.Model):
         # Request CAE
         result = wsfe.fe_cae_solicitar(certificate, invoice_data)
 
+        # Build barcode data
+        barcode = self._build_arca_barcode(
+            certificate, doc_type_code, journal, result
+        )
+
         # Store results
         observations = ""
         if result.get("observations"):
@@ -176,6 +181,7 @@ class AccountMove(models.Model):
             "l10n_ar_arca_cae_due_date": result["cae_due_date"],
             "l10n_ar_arca_result": result["result"],
             "l10n_ar_arca_observations": observations or False,
+            "l10n_ar_arca_barcode": barcode,
         })
 
     def _get_arca_doc_type_code(self):
@@ -183,18 +189,22 @@ class AccountMove(models.Model):
         self.ensure_one()
         doc_type = self.l10n_latam_document_type_id
         if not doc_type:
-            raise UserError(
-                _("No document type set for this invoice.")
-            )
+            raise UserError(_("No document type set for this invoice."))
         code = int(doc_type.code)
-        if code not in L10N_AR_TO_ARCA_DOC_TYPE:
+        if code not in SUPPORTED_ARCA_DOC_TYPES:
             raise UserError(
-                _("Document type '%s' (code %s) is not supported for "
-                  "electronic invoicing.", doc_type.name, doc_type.code)
+                _(
+                    "Document type '%s' (code %s) is not supported for "
+                    "electronic invoicing.",
+                    doc_type.name,
+                    doc_type.code,
+                )
             )
-        return L10N_AR_TO_ARCA_DOC_TYPE[code]
+        return code
 
-    def _prepare_arca_invoice_data(self, certificate, journal, doc_type_code, invoice_number):
+    def _prepare_arca_invoice_data(
+        self, certificate, journal, doc_type_code, invoice_number
+    ):
         """Prepare the data dict for FECAESolicitar."""
         self.ensure_one()
 
@@ -213,17 +223,19 @@ class AccountMove(models.Model):
         date_str = invoice_date.strftime("%Y%m%d")
 
         # Amounts
-        sign = -1 if self.move_type in ("out_refund", "in_refund") else 1
-        total = abs(self.amount_total) * sign
+        total = abs(self.amount_total)
         iva_total = 0
         net_taxed = 0
         tax_exempt = 0
         iva_lines = []
 
         for tax_line in self.line_ids.filtered(
-            lambda l: l.tax_line_id and l.tax_line_id.tax_group_id.l10n_ar_vat_afip_code
+            lambda l: l.tax_line_id
+            and l.tax_line_id.tax_group_id.l10n_ar_vat_afip_code
         ):
-            afip_code = int(tax_line.tax_line_id.tax_group_id.l10n_ar_vat_afip_code)
+            afip_code = int(
+                tax_line.tax_line_id.tax_group_id.l10n_ar_vat_afip_code
+            )
             amount = abs(tax_line.balance)
             base = abs(tax_line.tax_base_amount)
 
@@ -239,7 +251,7 @@ class AccountMove(models.Model):
                 })
 
         # Net untaxed (no gravado)
-        net_untaxed = abs(total) - net_taxed - iva_total - tax_exempt
+        net_untaxed = total - net_taxed - iva_total - tax_exempt
 
         data = {
             "pos_number": journal.l10n_ar_afip_pos_number,
@@ -249,7 +261,7 @@ class AccountMove(models.Model):
             "customer_doc_number": customer_doc_number,
             "invoice_number": invoice_number,
             "date": date_str,
-            "total": abs(total),
+            "total": total,
             "net_untaxed": max(net_untaxed, 0),
             "net_taxed": net_taxed,
             "tax_exempt": tax_exempt,
@@ -265,21 +277,28 @@ class AccountMove(models.Model):
             data["payment_due_date"] = due_date.strftime("%Y%m%d")
 
         # Associated documents (credit/debit notes)
-        if self.move_type in ("out_refund", "in_refund") and self.reversed_entry_id:
+        if self.move_type in ("out_refund", "in_refund"):
             origin = self.reversed_entry_id
-            data["associated_docs"] = [{
-                "type": int(origin.l10n_latam_document_type_id.code),
-                "pos_number": journal.l10n_ar_afip_pos_number,
-                "number": int(
-                    origin.l10n_latam_document_number.split("-")[-1]
-                ),
-                "cuit": certificate.cuit.replace("-", ""),
-                "date": origin.invoice_date.strftime("%Y%m%d"),
-            }]
+            if origin:
+                data["associated_docs"] = [
+                    {
+                        "type": int(
+                            origin.l10n_latam_document_type_id.code
+                        ),
+                        "pos_number": journal.l10n_ar_afip_pos_number,
+                        "number": int(
+                            origin.l10n_latam_document_number.split("-")[-1]
+                        ),
+                        "cuit": certificate.cuit.replace("-", ""),
+                        "date": origin.invoice_date.strftime("%Y%m%d"),
+                    }
+                ]
 
         # Customer IVA condition (RG 5616)
         if partner.l10n_ar_afip_responsibility_type_id:
-            resp_code = int(partner.l10n_ar_afip_responsibility_type_id.code)
+            resp_code = int(
+                partner.l10n_ar_afip_responsibility_type_id.code
+            )
             if resp_code in RESPONSIBILITY_TO_IVA_CONDITION:
                 data["customer_iva_condition"] = (
                     RESPONSIBILITY_TO_IVA_CONDITION[resp_code]
@@ -290,9 +309,7 @@ class AccountMove(models.Model):
             data["currency_code"] = (
                 self.currency_id.l10n_ar_afip_code or "PES"
             )
-            data["currency_rate"] = (
-                self.currency_id.rate or 1
-            )
+            data["currency_rate"] = self.currency_id.rate or 1
 
         return data
 
@@ -326,7 +343,45 @@ class AccountMove(models.Model):
 
         id_code = id_type.l10n_ar_afip_code
         if id_code:
-            return int(id_code), int(vat.replace("-", "").replace(" ", ""))
+            return int(id_code), int(
+                vat.replace("-", "").replace(" ", "")
+            )
 
         # Fallback
         return 99, 0
+
+    def _build_arca_barcode(
+        self, certificate, doc_type_code, journal, cae_result
+    ):
+        """
+        Build the ARCA barcode data string for Interleaved 2 of 5.
+
+        Format: CUIT + CbteTipo + PtoVta + CAE + CAEFchVto + DigitoVerificador
+
+        The barcode encodes:
+        - CUIT (11 digits)
+        - Tipo de comprobante (3 digits, zero-padded)
+        - Punto de venta (5 digits, zero-padded)
+        - CAE (14 digits)
+        - Fecha vencimiento CAE (8 digits, YYYYMMDD)
+        - Dígito verificador (1 digit, mod 10)
+        """
+        if not cae_result.get("cae") or not cae_result.get("cae_due_date"):
+            return False
+
+        cuit = certificate.cuit.replace("-", "").replace(" ", "")
+        cbte_tipo = str(doc_type_code).zfill(3)
+        pto_vta = str(journal.l10n_ar_afip_pos_number).zfill(5)
+        cae = str(cae_result["cae"]).zfill(14)
+        cae_due = str(cae_result["cae_due_date"]).replace("-", "")
+
+        # Build barcode without check digit
+        barcode_data = f"{cuit}{cbte_tipo}{pto_vta}{cae}{cae_due}"
+
+        # Calculate mod 10 check digit (Luhn-like for I2of5)
+        odd_sum = sum(int(d) for d in barcode_data[::2])
+        even_sum = sum(int(d) for d in barcode_data[1::2])
+        total = odd_sum * 3 + even_sum
+        check_digit = (10 - (total % 10)) % 10
+
+        return f"{barcode_data}{check_digit}"

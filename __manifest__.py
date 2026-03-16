@@ -47,20 +47,24 @@ ARCA Web Services:
     "external_dependencies": {
         "python": [
             "cryptography",
-            "OpenSSL",
             "zeep",
             "lxml",
         ],
     },
     "data": [
         "security/ir.model.access.csv",
+        "wizards/l10n_ar_arca_certificate_wizard_views.xml",
         "views/l10n_ar_arca_certificate_views.xml",
         "views/res_config_settings_views.xml",
         "views/account_move_views.xml",
         "views/account_journal_views.xml",
-        "wizards/l10n_ar_arca_certificate_wizard_views.xml",
         "data/ir_cron_data.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "l10n_ar_arca_edi/static/src/scss/arca_badge.scss",
+        ],
+    },
     "installable": True,
     "auto_install": False,
     "application": False,

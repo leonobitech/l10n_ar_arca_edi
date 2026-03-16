@@ -28,6 +28,9 @@
                                 decoration-danger="l10n_ar_arca_result == 'R'"
                                 decoration-warning="l10n_ar_arca_result == 'O'"/>
                         </group>
+                        <group string="Barcode">
+                            <field name="l10n_ar_arca_barcode"/>
+                        </group>
                     </group>
                     <group string="Observations"
                         invisible="not l10n_ar_arca_observations">

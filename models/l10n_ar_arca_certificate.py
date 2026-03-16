@@ -6,6 +6,7 @@ import logging
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.serialization import pkcs7
 from cryptography.x509.oid import NameOID
 
 from odoo import api, fields, models, _
@@ -14,7 +15,7 @@ from odoo.exceptions import UserError
 _logger = logging.getLogger(__name__)
 
 ARCA_ENVIRONMENTS = [
-    ("testing", "Testing (Homologación)"),
+    ("testing", "Testing (Staging)"),
     ("production", "Production"),
 ]
 
@@ -27,7 +28,7 @@ class L10nArArcaCertificate(models.Model):
     name = fields.Char(
         string="Name",
         required=True,
-        help="Symbolic name for this certificate",
+        help="Symbolic name for this certificate (used as CN in the CSR)",
     )
     company_id = fields.Many2one(
         "res.company",
@@ -38,7 +39,7 @@ class L10nArArcaCertificate(models.Model):
     cuit = fields.Char(
         string="CUIT",
         required=True,
-        help="CUIT number without dashes (e.g., 20293188204)",
+        help="CUIT number (e.g., 20-29318820-4 or 20293188204)",
     )
     environment = fields.Selection(
         ARCA_ENVIRONMENTS,
@@ -109,8 +110,14 @@ class L10nArArcaCertificate(models.Model):
             cuit = rec.cuit.replace("-", "").replace(" ", "")
             if not cuit.isdigit() or len(cuit) != 11:
                 raise UserError(
-                    _("CUIT must be exactly 11 digits without dashes.")
+                    _("CUIT must be exactly 11 digits (e.g., 20-29318820-4).")
                 )
+
+    def _format_cuit_with_dashes(self):
+        """Format CUIT as XX-XXXXXXXX-X for CSR serialNumber."""
+        self.ensure_one()
+        cuit = self.cuit.replace("-", "").replace(" ", "")
+        return f"{cuit[:2]}-{cuit[2:10]}-{cuit[10]}"
 
     def action_generate_key_and_csr(self):
         """Generate RSA 2048 private key and CSR for ARCA."""
@@ -118,7 +125,7 @@ class L10nArArcaCertificate(models.Model):
         if self.state not in ("draft",):
             raise UserError(_("Can only generate CSR in draft state."))
 
-        cuit = self.cuit.replace("-", "").replace(" ", "")
+        cuit_formatted = self._format_cuit_with_dashes()
         company_name = self.company_id.name or "Company"
 
         # Generate RSA 2048-bit private key
@@ -135,12 +142,15 @@ class L10nArArcaCertificate(models.Model):
         )
 
         # Build CSR with ARCA-required fields
+        # C=AR, O=company, CN=alias, serialNumber=CUIT XX-XXXXXXXX-X
         csr_builder = x509.CertificateSigningRequestBuilder().subject_name(
             x509.Name([
                 x509.NameAttribute(NameOID.COUNTRY_NAME, "AR"),
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, company_name),
                 x509.NameAttribute(NameOID.COMMON_NAME, self.name),
-                x509.NameAttribute(NameOID.SERIAL_NUMBER, f"CUIT {cuit}"),
+                x509.NameAttribute(
+                    NameOID.SERIAL_NUMBER, f"CUIT {cuit_formatted}"
+                ),
             ])
         )
 
@@ -160,9 +170,11 @@ class L10nArArcaCertificate(models.Model):
         })
 
         _logger.info(
-            "Generated private key and CSR for certificate '%s' (CUIT: %s)",
+            "Generated private key and CSR for certificate '%s' "
+            "(CUIT: %s, env: %s)",
             self.name,
-            cuit,
+            cuit_formatted,
+            self.environment,
         )
 
         return {
@@ -172,7 +184,11 @@ class L10nArArcaCertificate(models.Model):
                 "title": _("CSR Generated"),
                 "message": _(
                     "Private key and CSR have been generated. "
-                    "Download the CSR and upload it to the ARCA portal."
+                    "Download the CSR and upload it to the ARCA portal "
+                    "(%s environment).",
+                    "WSASS Homologación"
+                    if self.environment == "testing"
+                    else "Administración de Certificados Digitales",
                 ),
                 "type": "success",
                 "sticky": False,
@@ -191,6 +207,38 @@ class L10nArArcaCertificate(models.Model):
             "context": {"default_certificate_id": self.id},
         }
 
+    def action_test_connection(self):
+        """Test WSAA authentication with this certificate."""
+        self.ensure_one()
+        if self.state != "active":
+            raise UserError(
+                _("Certificate must be active to test the connection.")
+            )
+
+        wsaa = self.env["l10n_ar.arca.wsaa"]
+        try:
+            wsaa._get_or_refresh_token(self, service="wsfe")
+        except UserError:
+            raise
+        except Exception as e:
+            raise UserError(
+                _("Connection test failed: %s", str(e))
+            ) from e
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Connection Successful"),
+                "message": _(
+                    "WSAA authentication successful. Token valid until %s.",
+                    self.wsaa_token_expiration.strftime("%Y-%m-%d %H:%M") if self.wsaa_token_expiration else "",
+                ),
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
     def action_process_certificate(self, cert_data):
         """Process the uploaded certificate and extract metadata."""
         self.ensure_one()
@@ -204,15 +252,15 @@ class L10nArArcaCertificate(models.Model):
             "cert_subject": cert.subject.rfc4514_string(),
             "cert_issuer": cert.issuer.rfc4514_string(),
             "cert_serial_number": str(cert.serial_number),
-            "cert_date_start": cert.not_valid_before_utc,
-            "cert_date_end": cert.not_valid_after_utc,
+            "cert_date_start": cert.not_valid_before,
+            "cert_date_end": cert.not_valid_after,
             "state": "active",
         })
 
         _logger.info(
             "Certificate '%s' activated. Valid until %s",
             self.name,
-            cert.not_valid_after_utc,
+            cert.not_valid_after,
         )
 
     def action_revoke(self):

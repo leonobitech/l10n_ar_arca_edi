@@ -4,8 +4,10 @@ import base64
 import datetime
 import logging
 
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.serialization import pkcs7
+from cryptography.x509 import load_pem_x509_certificate
 from lxml import etree
-from OpenSSL import crypto
 from zeep import Client
 from zeep.transports import Transport
 
@@ -16,11 +18,14 @@ _logger = logging.getLogger(__name__)
 
 # WSAA endpoints
 WSAA_URL = {
-    "testing": "https://wsaahomo.afip.gov.ar/ws/services/LoginCms?WSDL",
-    "production": "https://wsaa.afip.gov.ar/ws/services/LoginCms?WSDL",
+    "testing": "https://wsaahomo.afip.gov.ar/ws/services/LoginCms?wsdl",
+    "production": "https://wsaa.afip.gov.ar/ws/services/LoginCms?wsdl",
 }
 
-# Token lifetime: request 12 hours, ARCA grants up to 24h
+# Argentina timezone offset
+AR_TZ = datetime.timezone(datetime.timedelta(hours=-3))
+
+# Token lifetime: request 12 hours
 TOKEN_DURATION_HOURS = 12
 
 
@@ -36,7 +41,7 @@ class L10nArArcaWsaa(models.Model):
         Otherwise, authenticate with ARCA and cache the new token.
 
         :param certificate: l10n_ar.arca.certificate record
-        :param service: ARCA service name (e.g., 'wsfe', 'wsfex')
+        :param service: ARCA service name (e.g., 'wsfe', 'wsfex', 'wsbfe')
         :returns: dict with 'token' and 'sign' keys
         """
         certificate.ensure_one()
@@ -52,7 +57,8 @@ class L10nArArcaWsaa(models.Model):
             certificate.wsaa_token
             and certificate.wsaa_sign
             and certificate.wsaa_token_expiration
-            and certificate.wsaa_token_expiration > now + datetime.timedelta(minutes=10)
+            and certificate.wsaa_token_expiration
+            > now + datetime.timedelta(minutes=10)
         ):
             return {
                 "token": certificate.wsaa_token,
@@ -69,7 +75,7 @@ class L10nArArcaWsaa(models.Model):
 
         Flow:
         1. Build a TRA (Ticket de Requerimiento de Acceso) XML
-        2. Sign it with the private key + certificate using CMS (PKCS#7)
+        2. Sign it with CMS/PKCS#7 using cryptography library
         3. Send the signed CMS to WSAA LoginCms endpoint
         4. Parse the response to extract Token and Sign
 
@@ -79,18 +85,21 @@ class L10nArArcaWsaa(models.Model):
         """
         certificate.ensure_one()
 
-        # Step 1: Build TRA XML
-        now = datetime.datetime.now(datetime.timezone.utc)
+        # Step 1: Build TRA XML with Argentina timezone (-03:00)
+        now = datetime.datetime.now(AR_TZ)
         generation_time = now - datetime.timedelta(minutes=10)
-        expiration_time = now + datetime.timedelta(hours=TOKEN_DURATION_HOURS)
+        expiration_time = now + datetime.timedelta(minutes=10)
+
+        gen_str = generation_time.isoformat(timespec="seconds")
+        exp_str = expiration_time.isoformat(timespec="seconds")
 
         tra_xml = (
             '<?xml version="1.0" encoding="UTF-8"?>'
-            "<loginTicketRequest version=\"1.0\">"
+            '<loginTicketRequest version="1.0">'
             "<header>"
             f"<uniqueId>{int(now.timestamp())}</uniqueId>"
-            f"<generationTime>{generation_time.strftime('%Y-%m-%dT%H:%M:%S%z')}</generationTime>"
-            f"<expirationTime>{expiration_time.strftime('%Y-%m-%dT%H:%M:%S%z')}</expirationTime>"
+            f"<generationTime>{gen_str}</generationTime>"
+            f"<expirationTime>{exp_str}</expirationTime>"
             "</header>"
             f"<service>{service}</service>"
             "</loginTicketRequest>"
@@ -103,7 +112,7 @@ class L10nArArcaWsaa(models.Model):
             certificate.environment,
         )
 
-        # Step 2: Sign TRA with CMS (PKCS#7)
+        # Step 2: Sign TRA with CMS (PKCS#7) using cryptography library
         cms_signed = self._sign_tra(certificate, tra_xml)
 
         # Step 3: Call WSAA LoginCms
@@ -138,40 +147,34 @@ class L10nArArcaWsaa(models.Model):
     @api.model
     def _sign_tra(self, certificate, tra_xml):
         """
-        Sign the TRA XML using PKCS#7 (CMS) with the certificate's
-        private key and X.509 certificate.
+        Sign the TRA XML using PKCS#7 (CMS) with the cryptography library.
+
+        Uses PKCS7SignatureBuilder from the cryptography package, which is
+        the clean, supported API (no pyOpenSSL internals needed).
 
         :param certificate: l10n_ar.arca.certificate record
         :param tra_xml: TRA XML string
-        :returns: Base64-encoded CMS signature
+        :returns: Base64-encoded CMS signature (DER format)
         """
         # Load private key
         key_pem = base64.b64decode(certificate.private_key)
-        pkey = crypto.load_privatekey(crypto.FILETYPE_PEM, key_pem)
+        private_key = serialization.load_pem_private_key(
+            key_pem, password=None
+        )
 
         # Load certificate
         cert_pem = base64.b64decode(certificate.certificate)
-        x509_cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert_pem)
+        cert = load_pem_x509_certificate(cert_pem)
 
-        # Create PKCS#7 signed message
-        bio_in = crypto._new_mem_buf(tra_xml.encode("utf-8"))
-        pkcs7 = crypto._lib.PKCS7_sign(
-            x509_cert._x509,
-            pkey._pkey,
-            crypto._ffi.NULL,
-            bio_in,
-            crypto._lib.PKCS7_BINARY | crypto._lib.PKCS7_NOATTR,
+        # Sign using PKCS7SignatureBuilder
+        signed = (
+            pkcs7.PKCS7SignatureBuilder()
+            .set_data(tra_xml.encode("utf-8"))
+            .add_signer(cert, private_key, hashes.SHA256())
+            .sign(serialization.Encoding.DER, [pkcs7.PKCS7Options.Binary])
         )
 
-        if pkcs7 == crypto._ffi.NULL:
-            raise UserError(_("Failed to create PKCS#7 signature."))
-
-        # Serialize to DER and encode as base64
-        bio_out = crypto._new_mem_buf()
-        crypto._lib.i2d_PKCS7_bio(bio_out, pkcs7)
-        signed_data = crypto._bio_to_string(bio_out)
-
-        return base64.b64encode(signed_data).decode("utf-8")
+        return base64.b64encode(signed).decode("utf-8")
 
     @api.model
     def _parse_login_response(self, response):
@@ -181,15 +184,15 @@ class L10nArArcaWsaa(models.Model):
         Expected format:
         <loginTicketResponse version="1.0">
             <header>
-                <source>...</source>
-                <destination>...</destination>
+                <source>CN=wsaa, O=AFIP, C=AR</source>
+                <destination>SERIALNUMBER=CUIT XX-XXXXXXXX-X, CN=...</destination>
                 <uniqueId>...</uniqueId>
-                <generationTime>...</generationTime>
-                <expirationTime>...</expirationTime>
+                <generationTime>2026-03-15T10:00:00-03:00</generationTime>
+                <expirationTime>2026-03-15T22:00:00-03:00</expirationTime>
             </header>
             <credentials>
-                <token>...</token>
-                <sign>...</sign>
+                <token>LARGO_STRING_DEL_TOKEN...</token>
+                <sign>LARGO_STRING_DEL_SIGN...</sign>
             </credentials>
         </loginTicketResponse>
 
@@ -211,15 +214,14 @@ class L10nArArcaWsaa(models.Model):
                 _("WSAA response missing token or sign credentials.")
             )
 
-        # Parse expiration time
+        # Parse expiration time (ARCA returns -03:00 timezone)
         expiration = fields.Datetime.now() + datetime.timedelta(
             hours=TOKEN_DURATION_HOURS
         )
         if expiration_str:
             try:
-                # ARCA returns ISO format like 2025-01-01T12:00:00.000-03:00
                 expiration = datetime.datetime.fromisoformat(expiration_str)
-                # Convert to UTC naive datetime for Odoo
+                # Convert to UTC naive datetime for Odoo storage
                 expiration = expiration.astimezone(
                     datetime.timezone.utc
                 ).replace(tzinfo=None)
