@@ -91,6 +91,11 @@
     <template id="report_invoice_document"
         inherit_id="l10n_ar.report_invoice_document">
 
+        <!-- Add lateral padding to body content -->
+        <xpath expr="//div[hasclass('page')]" position="attributes">
+            <attribute name="style">padding-left: 20px; padding-right: 20px;</attribute>
+        </xpath>
+
         <!-- Spacer before client section -->
         <div id="informations" position="before">
             <div style="height: 130px; clear: both;">&#160;</div>
