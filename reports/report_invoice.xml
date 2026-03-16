@@ -6,7 +6,7 @@
     <!-- ============================================================ -->
     <template id="external_layout_wave_override" inherit_id="web.external_layout_wave">
         <xpath expr="//t[@t-set='header_shape_height']" position="attributes">
-            <attribute name="t-value">290</attribute>
+            <attribute name="t-value">260</attribute>
         </xpath>
     </template>
 
