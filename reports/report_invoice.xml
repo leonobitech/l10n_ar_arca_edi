@@ -8,7 +8,7 @@
 
         <!-- Replace company info with structured layout -->
         <xpath expr="//div[@style='padding-right: 0px;']" position="replace">
-            <div class="col-6" style="padding-right: 0px;">
+            <div class="col-6" style="padding-right: 0px; padding-top: 20px;">
                 <t t-if="not pre_printed_report">
                     <strong style="font-size: 1.3em;" t-field="o.company_id.partner_id.name"/>
                     <div style="font-size: 0.80em; margin-top: 2px;">
@@ -34,7 +34,7 @@
 
         <!-- Replace right side: invoice number, date, fiscal data -->
         <div id="l10n_ar_header_right" position="replace">
-            <div id="l10n_ar_header_right" class="col-6 text-end" style="padding-left: 0px;">
+            <div id="l10n_ar_header_right" class="col-6 text-end" style="padding-left: 0px; padding-top: 20px;">
                 <t t-if="not pre_printed_report">
                     <div>
                         Factura N°:
