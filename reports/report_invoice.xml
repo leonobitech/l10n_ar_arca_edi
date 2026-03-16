@@ -10,6 +10,11 @@
             <attribute name="t-value">'260'</attribute>
         </xpath>
 
+        <!-- TEST: target footer path specifically by its d attribute -->
+        <xpath expr="//path[starts-with(@d,'M427')]" position="attributes">
+            <attribute name="fill">#ff0000</attribute>
+            <attribute name="fill-opacity">1</attribute>
+        </xpath>
     </template>
 
     <!-- ============================================================ -->
