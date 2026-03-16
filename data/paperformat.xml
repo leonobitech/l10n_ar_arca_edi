@@ -4,7 +4,7 @@
     <record id="paperformat_arca_invoice" model="report.paperformat">
         <field name="name">ARCA Invoice (A4)</field>
         <field name="format">A4</field>
-        <field name="margin_top">34</field>
+        <field name="margin_top">38</field>
         <field name="margin_bottom">32</field>
         <field name="margin_left">7</field>
         <field name="margin_right">7</field>
