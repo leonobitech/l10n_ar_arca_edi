@@ -8,8 +8,9 @@
 
         <!-- Make company name more prominent -->
         <xpath expr="//span[@t-field='o.company_id.partner_id.name']" position="replace">
-            <strong style="font-size: 1.3em;" t-field="o.company_id.partner_id.name"/>
+            <strong style="font-size: 1.1em;" t-field="o.company_id.partner_id.name"/>
         </xpath>
+
 
         <!-- Replace right side: invoice number, date, fiscal data -->
         <div id="l10n_ar_header_right" position="replace">
@@ -54,9 +55,9 @@
     <template id="report_invoice_document"
         inherit_id="l10n_ar.report_invoice_document">
 
-        <!-- Add spacing above client section -->
-        <div id="informations" position="attributes">
-            <attribute name="class">row mt-5 mb-2</attribute>
+        <!-- Force clear before client section (wkhtmltopdf fix) -->
+        <div id="informations" position="before">
+            <div style="clear: both; margin-top: 10px;"/>
         </div>
 
         <!-- Replace the custom_footer to include CAE and QR code -->
