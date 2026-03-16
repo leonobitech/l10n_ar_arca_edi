@@ -53,6 +53,7 @@ ARCA Web Services:
     },
     "data": [
         "security/ir.model.access.csv",
+        "data/paperformat.xml",
         "wizards/l10n_ar_arca_certificate_wizard_views.xml",
         "views/l10n_ar_arca_certificate_views.xml",
         "views/res_config_settings_views.xml",

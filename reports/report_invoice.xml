@@ -118,38 +118,54 @@
         <!-- Replace the custom_footer to include CAE and QR code -->
         <t t-set="custom_footer" position="replace">
             <t t-set="custom_footer">
-                <div class="row" style="font-size: 0.85em; margin-bottom: 15px;">
+                <div style="border-top: 1px solid #dee2e6; padding-top: 8px; font-size: 0.85em;">
                     <t t-if="o.l10n_ar_arca_cae">
-                        <div class="col-2 text-start" style="padding-left: 15px;">
-                            <t t-if="o.l10n_ar_arca_qr_code">
-                                <img t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=150&amp;height=150' % o.l10n_ar_arca_qr_code"
-                                    style="width: 80px; height: 80px;"
-                                    alt="ARCA QR Code"/>
-                            </t>
-                        </div>
-                        <div class="col-6 text-start" style="padding-top: 8px;">
-                            <div style="font-size: 0.75em; color: #555; margin-bottom: 4px;">Factura electrónica autorizada por ARCA (ex-AFIP) conforme RG 4892/2020 y RG 2485. Verifique este documento escaneando el código QR.</div>
-                            <strong>C.A.E. N°:</strong> <span t-field="o.l10n_ar_arca_cae"/><br/>
-                            <strong>Fecha Vto. CAE:</strong>
-                            <t t-set="cae_due" t-value="o.l10n_ar_arca_cae_due_date"/>
-                            <span t-if="cae_due and len(cae_due) == 8"
-                                t-out="'%s/%s/%s' % (cae_due[6:8], cae_due[4:6], cae_due[0:4])"/>
-                            <span t-else="" t-out="cae_due"/>
-                        </div>
-                        <div name="footer_right_column" class="col-4 text-end">
-                            <div name="pager" t-if="report_type == 'pdf'">
-                                Page: <span class="page"/> / <span class="topage"/>
-                            </div>
-                        </div>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="width: 90px; vertical-align: top; padding-right: 10px;">
+                                    <t t-if="o.l10n_ar_arca_qr_code">
+                                        <img t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=150&amp;height=150' % o.l10n_ar_arca_qr_code"
+                                            style="width: 80px; height: 80px;"
+                                            alt="ARCA QR Code"/>
+                                    </t>
+                                </td>
+                                <td style="vertical-align: top; padding-top: 2px;">
+                                    <strong>C.A.E. N°:</strong> <span t-field="o.l10n_ar_arca_cae"/>
+                                    <span style="margin-left: 15px;">
+                                        <strong>Fecha Vto. CAE:</strong>
+                                        <t t-set="cae_due" t-value="o.l10n_ar_arca_cae_due_date"/>
+                                        <span t-if="cae_due and len(cae_due) == 8"
+                                            t-out="'%s/%s/%s' % (cae_due[6:8], cae_due[4:6], cae_due[0:4])"/>
+                                        <span t-else="" t-out="cae_due"/>
+                                    </span>
+                                    <div style="font-size: 0.8em; color: #555; margin-top: 4px;">
+                                        Factura electrónica autorizada por ARCA (ex-AFIP) conforme RG 4892/2020 y RG 2485.
+                                        Verifique este documento escaneando el código QR.
+                                    </div>
+                                </td>
+                                <td style="width: 100px; vertical-align: top; text-align: right;">
+                                    <div t-if="report_type == 'pdf'">
+                                        Pág. <span class="page"/> / <span class="topage"/>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
                     </t>
                     <t t-else="">
-                        <div name="footer_left_column" class="col-8 text-start">
-                        </div>
-                        <div name="footer_right_column" class="col-4 text-end">
-                            <div name="pager" t-if="report_type == 'pdf'">
-                                Page: <span class="page"/> / <span class="topage"/>
-                            </div>
-                        </div>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="vertical-align: top;">
+                                    <div style="font-size: 0.8em; color: #555;">
+                                        Factura electrónica autorizada por ARCA (ex-AFIP) conforme RG 4892/2020 y RG 2485.
+                                    </div>
+                                </td>
+                                <td style="width: 100px; vertical-align: top; text-align: right;">
+                                    <div t-if="report_type == 'pdf'">
+                                        Pág. <span class="page"/> / <span class="topage"/>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
                     </t>
                 </div>
             </t>
