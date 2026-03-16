@@ -55,9 +55,9 @@
     <template id="report_invoice_document"
         inherit_id="l10n_ar.report_invoice_document">
 
-        <!-- Force clear before client section (wkhtmltopdf fix) -->
+        <!-- Spacer before client section -->
         <div id="informations" position="before">
-            <div style="clear: both; margin-top: 10px;"/>
+            <div style="height: 30px; clear: both;">&#160;</div>
         </div>
 
         <!-- Replace the custom_footer to include CAE and QR code -->
