@@ -91,11 +91,6 @@
     <template id="report_invoice_document"
         inherit_id="l10n_ar.report_invoice_document">
 
-        <!-- Reduce body lateral padding to align with header -->
-        <xpath expr="//div[hasclass('page')]" position="attributes">
-            <attribute name="style">margin-left: -24px; margin-right: -24px;</attribute>
-        </xpath>
-
         <!-- Spacer before client section -->
         <div id="informations" position="before">
             <div style="height: 130px; clear: both;">&#160;</div>
