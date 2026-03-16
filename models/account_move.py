@@ -129,7 +129,7 @@ class AccountMove(models.Model):
             raise UserError(
                 _(
                     "No active ARCA certificate configured for company '%s'. "
-                    "Go to Settings > Accounting > ARCA Certificate.",
+                    "Go to Settings > Invoicing > ARCA Electronic Invoicing.",
                     self.company_id.name,
                 )
             )

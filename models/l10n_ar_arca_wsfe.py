@@ -233,7 +233,7 @@ class L10nArArcaWsfe(models.Model):
 
         # Customer IVA condition (RG 5616 - mandatory since April 2025)
         if invoice_data.get("customer_iva_condition"):
-            detail["CondicionIVAReceptor"] = invoice_data[
+            detail["CondicionIVAReceptorId"] = invoice_data[
                 "customer_iva_condition"
             ]
 

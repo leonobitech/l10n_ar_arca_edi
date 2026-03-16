@@ -45,11 +45,11 @@ All included in the official Odoo 19 Docker image:
 
 ## Setup Guide
 
-Everything is configured from **Settings > Accounting > ARCA Electronic Invoicing** (top of the page).
+Everything is configured from **Settings > Invoicing > ARCA Electronic Invoicing** (top of the page).
 
 ### Step 1: Create Certificate (in Odoo)
 
-1. Go to **Settings > Accounting**
+1. Go to **Settings > Invoicing**
 2. In the **ARCA Electronic Invoicing** section, click **"Create Certificate"**
 3. Fill in the name (e.g., `MyCompany-Testing`), select company and environment
 4. Click **"Create Certificate"**
@@ -114,13 +114,16 @@ That's it! Your Odoo is now connected to ARCA.
 
 ### Step 6: Configure Journal
 
-On your sales journal (**Accounting > Configuration > Journals**):
-- Set **ARCA POS System** to "Online Invoice"
-- Enable **ARCA Electronic Invoicing**
+1. Go to **Invoicing > Configuration > Journals** (in Odoo Community, the app is called "Invoicing", not "Accounting")
+2. Click on your sales journal (e.g., "Ventas Preimpreso")
+3. Make sure **Use Documents** and **Is ARCA POS?** are checked
+4. Set **ARCA POS System** to **"Online Invoice"** (this is the `RLI_RLM` mode required for electronic invoicing)
+5. The **ARCA Electronic Invoicing** checkbox will be automatically enabled
+6. Set your **ARCA POS Number** (the point of sale number registered in ARCA)
 
 ## Usage
 
-Once configured, CAE is automatically requested when posting invoices. You can also manually request CAE using the **"Request CAE"** button on posted invoices.
+Once configured, CAE is automatically requested when posting invoices from **Invoicing > Customers > Invoices**. You can also manually request CAE using the **"Request CAE"** button on posted invoices.
 
 ## Architecture
 
