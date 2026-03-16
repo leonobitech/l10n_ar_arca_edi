@@ -2,6 +2,15 @@
 <odoo>
 
     <!-- ============================================================ -->
+    <!-- Override Wave layout: increase header shape height           -->
+    <!-- ============================================================ -->
+    <template id="external_layout_wave_override" inherit_id="web.external_layout_wave">
+        <xpath expr="//t[@t-set='header_shape_height']" position="attributes">
+            <attribute name="t-value">290</attribute>
+        </xpath>
+    </template>
+
+    <!-- ============================================================ -->
     <!-- Override l10n_ar custom_header: company name + right side     -->
     <!-- ============================================================ -->
     <template id="custom_header" inherit_id="l10n_ar.custom_header">
