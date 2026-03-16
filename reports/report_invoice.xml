@@ -24,7 +24,7 @@
                             <span t-if="header_address.email"><strong>&#9993;</strong> <span t-out="header_address.email"/></span>
                         </div>
                         <div t-if="header_address.website">
-                            <strong t-out="(header_address.website or '').replace('https://', '').replace('http://', '')"/>
+                            <span t-out="(header_address.website or '').replace('https://', '').replace('http://', '')"/>
                         </div>
                     </div>
                 </t>
@@ -78,6 +78,41 @@
         <!-- Spacer before client section -->
         <div id="informations" position="before">
             <div style="height: 30px; clear: both;">&#160;</div>
+        </div>
+
+        <!-- Add border to client section -->
+        <div id="informations" position="replace">
+            <div id="informations" class="row mt8 mb8" style="border: 1px solid #dee2e6; border-radius: 4px; padding: 8px 12px;">
+                <div class="col-6" style="border-right: 1px solid #dee2e6; padding-right: 12px;">
+                    <t t-if="o.is_sale_document(include_receipts=True)"><strong>Customer: </strong></t>
+                    <t t-else=""><strong>Supplier: </strong></t>
+                    <span t-field="o.partner_id.commercial_partner_id.name"/>
+                    <br/>
+                    <span t-field="o.partner_id" t-options="{'widget': 'contact', 'fields': ['address'], 'no_marker': true, 'no_tag_br': True}"/>
+                    <div style="margin-top: 4px;">
+                        <strong>VAT Cond: </strong><span t-field="o.partner_id.l10n_ar_afip_responsibility_type_id"/>
+                    </div>
+                    <t t-if="o.partner_id.vat and o.partner_id.l10n_latam_identification_type_id and o.partner_id.l10n_latam_identification_type_id.l10n_ar_afip_code != '99'">
+                        <strong><t t-out="o.partner_id.l10n_latam_identification_type_id.name or o.company_id.account_fiscal_country_id.vat_label" id="inv_tax_id_label"/>:</strong>
+                        <span t-out="o.partner_id.l10n_ar_formatted_vat if o.partner_id.l10n_ar_vat else o.partner_id.vat"/>
+                    </t>
+                </div>
+                <div class="col-6" style="padding-left: 12px;">
+                    <t t-if="o.invoice_date_due">
+                        <strong>Due Date: </strong>
+                        <span t-field="o.invoice_date_due"/>
+                    </t>
+                    <t t-if="o.invoice_payment_term_id" name="payment_term">
+                        <br/><strong>Payment Terms: </strong><span t-field="o.invoice_payment_term_id.name"/>
+                    </t>
+                    <t t-if="o.invoice_origin">
+                        <br/><strong>Source:</strong> <span t-field="o.invoice_origin"/>
+                    </t>
+                    <t t-if="o.ref">
+                        <br/><strong>Reference:</strong> <span t-field="o.ref"/>
+                    </t>
+                </div>
+            </div>
         </div>
 
         <!-- Replace the custom_footer to include CAE and QR code -->
