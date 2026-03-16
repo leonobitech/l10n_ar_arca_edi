@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="paperformat_arca_invoice" model="ir.paperformat">
+    <record id="paperformat_arca_invoice" model="report.paperformat">
         <field name="name">ARCA Invoice (A4)</field>
         <field name="format">A4</field>
         <field name="margin_top">40</field>
