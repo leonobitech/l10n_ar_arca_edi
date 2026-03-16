@@ -10,6 +10,10 @@
             <attribute name="t-value">260</attribute>
         </xpath>
 
+        <!-- TEST: change footer SVG opacity to verify override works -->
+        <xpath expr="//div[hasclass('footer')]//path" position="attributes">
+            <attribute name="fill-opacity">.5</attribute>
+        </xpath>
     </template>
 
     <!-- ============================================================ -->
