@@ -139,7 +139,7 @@
         <!-- Replace the custom_footer to include CAE and QR code -->
         <t t-set="custom_footer" position="replace">
             <t t-set="custom_footer">
-                <div style="font-size: 0.85em; margin-left: -20px; margin-right: -20px;">
+                <div style="font-size: 0.85em;">
                     <t t-if="o.l10n_ar_arca_cae">
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
