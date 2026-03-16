@@ -10,19 +10,6 @@
             <attribute name="t-value">260</attribute>
         </xpath>
 
-        <!-- Replace entire Wave footer: remove position-fixed so padding works -->
-        <xpath expr="//div[hasclass('footer')]" position="replace">
-            <div t-attf-class="footer o_company_#{company.id}_layout" style="position: relative; padding-bottom: 20px;">
-                <svg class="w-100" style="position: absolute; top: 0; left: 0; z-index: -1;" preserveAspectRatio="none" height="100%" viewBox="0 0 1000 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M427.731 19.757C686.904 51.3469 898.971 38.039 1000 27.6922V180H0V8.20934C66.363 -0.991089 198.347 -8.20218 427.731 19.757Z" t-att-fill="company.secondary_color" fill-opacity=".1"/>
-                </svg>
-                <div class="pt-5 text-center" style="position: relative; z-index: 1;">
-                    <div t-field="company.report_footer"/>
-                    <span t-if="report_type == 'pdf' and display_name_in_footer" class="text-muted" t-out="str(o.name) + ', '"/>
-                    <span t-if="report_type == 'pdf'" class="text-muted">Page <span class="page"/> / <span class="topage"/></span>
-                </div>
-            </div>
-        </xpath>
     </template>
 
     <!-- ============================================================ -->
