@@ -171,10 +171,10 @@
         <!-- Replace the custom_footer to include CAE and QR code -->
         <t t-set="custom_footer" position="replace">
             <t t-set="custom_footer">
-                <div class="row" style="font-size: 0.85em;">
+                <div class="row" style="font-size: 0.85em; margin-bottom: 15px;">
                     <!-- CAE + QR row -->
                     <t t-if="o.l10n_ar_arca_cae">
-                        <div class="col-2 text-start">
+                        <div class="col-2 text-start" style="padding-left: 15px;">
                             <t t-if="o.l10n_ar_arca_qr_code">
                                 <img t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=150&amp;height=150' % o.l10n_ar_arca_qr_code"
                                     style="width: 80px; height: 80px;"
