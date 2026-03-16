@@ -10,6 +10,13 @@
             <attribute name="t-value">260</attribute>
         </xpath>
 
+        <!-- Inject CSS to push footer away from page edge -->
+        <xpath expr="//div[hasclass('footer')]" position="before">
+            <style>
+                .footer { margin-bottom: 20px !important; }
+                .footer svg.position-fixed { bottom: 20px !important; }
+            </style>
+        </xpath>
     </template>
 
     <!-- ============================================================ -->
