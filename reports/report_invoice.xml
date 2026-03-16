@@ -10,10 +10,6 @@
             <attribute name="t-value">260</attribute>
         </xpath>
 
-        <!-- Reduce footer SVG height so it doesn't reach page edge -->
-        <xpath expr="//div[hasclass('footer')]//svg" position="attributes">
-            <attribute name="t-att-height">report_type == 'pdf' and '140'</attribute>
-        </xpath>
     </template>
 
     <!-- ============================================================ -->
