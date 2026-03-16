@@ -56,7 +56,7 @@
 
         <!-- Add spacing above client section -->
         <div id="informations" position="attributes">
-            <attribute name="style">margin-top: 15px;</attribute>
+            <attribute name="class">row mt-5 mb-2</attribute>
         </div>
 
         <!-- Replace the custom_footer to include CAE and QR code -->
