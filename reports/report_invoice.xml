@@ -2,11 +2,17 @@
 <odoo>
 
     <!-- ============================================================ -->
-    <!-- Override Wave layout: increase header shape height           -->
+    <!-- Override Wave layout: header height + footer bottom margin   -->
     <!-- ============================================================ -->
     <template id="external_layout_wave_override" inherit_id="web.external_layout_wave">
+        <!-- Increase header SVG height -->
         <xpath expr="//t[@t-set='header_shape_height']" position="attributes">
             <attribute name="t-value">260</attribute>
+        </xpath>
+
+        <!-- Add bottom margin to footer SVG so gray zone doesn't touch page edge -->
+        <xpath expr="//div[hasclass('footer')]//svg" position="attributes">
+            <attribute name="style">margin-bottom: 7mm;</attribute>
         </xpath>
     </template>
 
