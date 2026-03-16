@@ -53,12 +53,12 @@
             <div id="l10n_ar_header_right" class="col-6 text-end" style="padding-left: 0px;">
                 <t t-if="not pre_printed_report">
                     <div>
-                        Factura N°:
+                        Invoice N°:
                         <strong t-out="report_number"/>
                     </div>
                 </t>
                 <div>
-                    Fecha de Factura:
+                    Invoice Date:
                     <strong t-out="report_date" t-options='{"widget": "date"}'/>
                 </div>
                 <t t-if="not pre_printed_report">
@@ -70,12 +70,12 @@
                         <strong t-field="o.company_id.partner_id.l10n_ar_formatted_vat"/>
                     </div>
                     <div style="font-size: 0.9em;">
-                        IIBB:
-                        <span t-if="o.company_id.l10n_ar_gross_income_type == 'exempt'">Exento</span>
+                        Gross Income:
+                        <span t-if="o.company_id.l10n_ar_gross_income_type == 'exempt'">Exempt</span>
                         <span t-elif="o.company_id.l10n_ar_gross_income_number" t-out="o.company_id.l10n_ar_gross_income_number"/>
-                        <span t-else="">No inscripto</span>
+                        <span t-else="">Not registered</span>
                         <span t-if="o.company_id.l10n_ar_afip_start_date">
-                             | Inicio Act.: <span t-field="o.company_id.l10n_ar_afip_start_date"/>
+                             | Start Date: <span t-field="o.company_id.l10n_ar_afip_start_date"/>
                         </span>
                     </div>
                 </t>
@@ -154,7 +154,7 @@
                                     <div>
                                         <strong>C.A.E. N°:</strong> <span t-field="o.l10n_ar_arca_cae"/>
                                         <span style="margin-left: 15px;">
-                                            <strong>Fecha Vto. CAE:</strong>
+                                            <strong>CAE Exp. Date:</strong>
                                             <t t-set="cae_due" t-value="o.l10n_ar_arca_cae_due_date"/>
                                             <span t-if="cae_due and len(cae_due) == 8"
                                                 t-out="'%s/%s/%s' % (cae_due[6:8], cae_due[4:6], cae_due[0:4])"/>
@@ -162,13 +162,13 @@
                                         </span>
                                     </div>
                                     <div style="font-size: 0.75em; color: #555; margin-top: 3px; line-height: 1.3;">
-                                        Factura electrónica autorizada por ARCA (ex-AFIP)<br/>
-                                        conforme RG 4892/2020 y RG 2485. Verifique escaneando el código QR.
+                                        Electronic invoice authorized by ARCA (ex-AFIP)<br/>
+                                        pursuant to RG 4892/2020 and RG 2485. Verify by scanning the QR code.
                                     </div>
                                 </td>
                                 <td style="width: 80px; vertical-align: middle; text-align: right;">
                                     <div t-if="report_type == 'pdf'">
-                                        Pág. <span class="page"/> / <span class="topage"/>
+                                        Page <span class="page"/> / <span class="topage"/>
                                     </div>
                                 </td>
                             </tr>
@@ -179,12 +179,12 @@
                             <tr>
                                 <td style="vertical-align: top;">
                                     <div style="font-size: 0.8em; color: #555;">
-                                        Factura electrónica autorizada por ARCA (ex-AFIP) conforme RG 4892/2020 y RG 2485.
+                                        Electronic invoice authorized by ARCA (ex-AFIP) pursuant to RG 4892/2020 and RG 2485.
                                     </div>
                                 </td>
                                 <td style="width: 100px; vertical-align: top; text-align: right;">
                                     <div t-if="report_type == 'pdf'">
-                                        Pág. <span class="page"/> / <span class="topage"/>
+                                        Page <span class="page"/> / <span class="topage"/>
                                     </div>
                                 </td>
                             </tr>
@@ -202,7 +202,7 @@
     <template id="document_tax_totals_template"
         inherit_id="account.document_tax_totals_template">
         <xpath expr="//tr[@class='o_total']/td/strong" position="replace">
-            <strong>TOTAL A PAGAR</strong>
+            <strong>TOTAL</strong>
         </xpath>
     </template>
 
