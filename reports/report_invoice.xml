@@ -7,7 +7,7 @@
     <template id="external_layout_wave_override" inherit_id="web.external_layout_wave">
         <!-- Increase header SVG height -->
         <xpath expr="//t[@t-set='header_shape_height']" position="attributes">
-            <attribute name="t-value">'260'</attribute>
+            <attribute name="t-value">'290'</attribute>
         </xpath>
 
     </template>
