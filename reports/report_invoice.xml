@@ -6,9 +6,30 @@
     <!-- ============================================================ -->
     <template id="custom_header" inherit_id="l10n_ar.custom_header">
 
-        <!-- Make company name more prominent -->
-        <xpath expr="//span[@t-field='o.company_id.partner_id.name']" position="replace">
-            <strong style="font-size: 1.1em;" t-field="o.company_id.partner_id.name"/>
+        <!-- Replace company info with structured layout -->
+        <xpath expr="//div[@style='padding-right: 0px;']" position="replace">
+            <div class="col-6" style="padding-right: 0px;">
+                <t t-if="not pre_printed_report">
+                    <strong style="font-size: 1.1em;" t-field="o.company_id.partner_id.name"/>
+                    <div style="font-size: 0.80em; margin-top: 2px;">
+                        <t t-out="', '.join([item for item in [header_address.street, header_address.street2, header_address.city] if item])"/>,
+                    </div>
+                    <div style="font-size: 0.80em;">
+                        <t t-out="', '.join([item for item in [header_address.state_id and header_address.state_id.name, header_address.country_id and header_address.country_id.name] if item])"/>.
+                    </div>
+                    <div style="margin-top: 3px; font-size: 0.85em;">
+                        <div t-if="header_address.phone">
+                            <strong>Tel:</strong> <span t-out="header_address.phone"/>
+                        </div>
+                        <div t-if="header_address.email">
+                            <strong>Email:</strong> <span t-out="header_address.email"/>
+                        </div>
+                        <div t-if="header_address.website">
+                            <span t-out="(header_address.website or '').replace('https://', '').replace('http://', '')"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
         </xpath>
 
 
