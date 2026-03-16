@@ -19,13 +19,13 @@
                     </div>
                     <div style="margin-top: 3px; font-size: 0.85em;">
                         <div t-if="header_address.phone">
-                            <strong>Tel:</strong> <span t-out="header_address.phone"/>
+                            &#9742; <span t-out="header_address.phone"/>
                         </div>
                         <div t-if="header_address.email">
-                            <strong>Email:</strong> <span t-out="header_address.email"/>
+                            &#9993; <span t-out="header_address.email"/>
                         </div>
                         <div t-if="header_address.website">
-                            <span t-out="(header_address.website or '').replace('https://', '').replace('http://', '')"/>
+                            <strong t-out="(header_address.website or '').replace('https://', '').replace('http://', '')"/>
                         </div>
                     </div>
                 </t>
