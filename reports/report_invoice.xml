@@ -174,14 +174,14 @@
                 <div class="row" style="font-size: 0.85em;">
                     <!-- CAE + QR row -->
                     <t t-if="o.l10n_ar_arca_cae">
-                        <div class="col-3 text-start" style="padding-top: 4px;">
+                        <div class="col-2 text-start">
                             <t t-if="o.l10n_ar_arca_qr_code">
                                 <img t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=150&amp;height=150' % o.l10n_ar_arca_qr_code"
-                                    style="width: 90px; height: 90px;"
+                                    style="width: 80px; height: 80px;"
                                     alt="ARCA QR Code"/>
                             </t>
                         </div>
-                        <div class="col-5 text-start" style="padding-top: 10px;">
+                        <div class="col-6 text-start" style="padding-top: 16px;">
                             <strong>C.A.E. N°:</strong> <span t-field="o.l10n_ar_arca_cae"/><br/>
                             <strong>Fecha Vto. CAE:</strong>
                             <t t-set="cae_due" t-value="o.l10n_ar_arca_cae_due_date"/>
