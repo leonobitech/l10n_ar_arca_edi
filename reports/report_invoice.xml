@@ -1,28 +1,197 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Inherit l10n_ar invoice report to add CAE + barcode in footer -->
+    <!-- ============================================================ -->
+    <!-- Override l10n_ar custom_header: better visual hierarchy       -->
+    <!-- ============================================================ -->
+    <template id="custom_header" inherit_id="l10n_ar.custom_header">
+
+        <!-- Replace company info (left side) with structured layout -->
+        <div name="left-upper-side" position="replace">
+            <div name="left-upper-side" class="col-5" t-if="not pre_printed_report">
+                <img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)" style="max-height: 65px;" alt="Logo"/>
+            </div>
+        </div>
+
+        <!-- Replace the company details row -->
+        <xpath expr="//div[@class='row'][2]" position="replace">
+            <div class="row" style="border-top: 2px solid #dee2e6; padding-top: 6px; margin-top: 4px;">
+                <div class="col-6" style="padding-right: 0px;">
+                    <t t-if="not pre_printed_report">
+                        <!-- Company name - prominent -->
+                        <strong style="font-size: 1.1em;" t-field="o.company_id.partner_id.name"/>
+
+                        <!-- Address in smaller text -->
+                        <div style="font-size: 0.9em; color: #444; margin-top: 2px;">
+                            <t t-out="', '.join([item for item in [
+                                ', '.join([item for item in [header_address.street, header_address.street2] if item]),
+                                header_address.city,
+                                header_address.state_id and header_address.state_id.name,
+                                header_address.zip,
+                                header_address.country_id and header_address.country_id.name] if item])"/>
+                        </div>
+
+                        <!-- Phone + web/email on separate line -->
+                        <div style="font-size: 0.9em; margin-top: 2px;">
+                            <span t-if="header_address.phone" style="white-space: nowrap;">
+                                <strong>Tel:</strong> <span t-out="header_address.phone"/>
+                            </span>
+                            <span t-if="header_address.phone and ((header_address.website or '') + (header_address.email or ''))"> | </span>
+                            <span t-att-style="'color: %s;' % o.company_id.primary_color"
+                                t-out="' - '.join([item for item in [(header_address.website or '').replace('https://', '').replace('http://', ''), header_address.email] if item])"/>
+                        </div>
+                    </t>
+                </div>
+                <div id="l10n_ar_header_right" class="col-6 text-end" style="padding-left: 0px; font-size: 0.95em;">
+                    <t t-if="not pre_printed_report">
+                        <!-- Invoice number -->
+                        <div>
+                            <span style="color: #666;">Nro:</span>
+                            <strong t-out="report_number"/>
+                        </div>
+                    </t>
+
+                    <!-- Date -->
+                    <div>
+                        <span style="color: #666;">Fecha:</span>
+                        <strong t-out="report_date" t-options='{"widget": "date"}'/>
+                    </div>
+
+                    <t t-if="not pre_printed_report">
+                        <!-- Responsibility + CUIT -->
+                        <div style="margin-top: 2px;">
+                            <span t-field="o.company_id.l10n_ar_afip_responsibility_type_id"/>
+                        </div>
+                        <div>
+                            <span style="color: #666;">CUIT:</span>
+                            <strong t-field="o.company_id.partner_id.l10n_ar_formatted_vat"/>
+                        </div>
+
+                        <!-- IIBB + Activities Start -->
+                        <div style="font-size: 0.9em; color: #555;">
+                            <span>IIBB: </span>
+                            <span t-if="o.company_id.l10n_ar_gross_income_type == 'exempt'">Exento</span>
+                            <span t-elif="o.company_id.l10n_ar_gross_income_number" t-out="o.company_id.l10n_ar_gross_income_number"/>
+                            <span t-else="">No inscripto</span>
+                            <span t-if="o.company_id.l10n_ar_afip_start_date">
+                                 | Inicio Act.: <span t-field="o.company_id.l10n_ar_afip_start_date"/>
+                            </span>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </xpath>
+
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Override informations section: customer + invoice details     -->
+    <!-- ============================================================ -->
     <template id="report_invoice_document"
         inherit_id="l10n_ar.report_invoice_document">
 
-        <!-- Replace the custom_footer to include CAE and barcode -->
+        <!-- Replace informations section with better layout -->
+        <div id="informations" position="replace">
+            <div id="informations" class="row mt-2 mb-2" style="border: 1px solid #dee2e6; border-radius: 4px; padding: 8px 12px; margin-left: 0; margin-right: 0;">
+                <div class="col-7" style="border-right: 1px solid #dee2e6; padding-right: 12px;">
+
+                    <!-- Customer label -->
+                    <div style="font-size: 0.8em; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+                        <t t-if="o.is_sale_document(include_receipts=True)">Cliente</t>
+                        <t t-else="">Proveedor</t>
+                    </div>
+
+                    <!-- Customer name - prominent -->
+                    <strong style="font-size: 1.05em;" t-field="o.partner_id.commercial_partner_id.name"/>
+
+                    <!-- Address -->
+                    <div style="font-size: 0.9em; color: #444; margin-top: 2px;">
+                        <span t-field="o.partner_id" t-options="{'widget': 'contact', 'fields': ['address'], 'no_marker': true, 'no_tag_br': True}"/>
+                    </div>
+
+                    <!-- VAT Condition + Document -->
+                    <div style="margin-top: 4px; font-size: 0.9em;">
+                        <strong>Cond. IVA:</strong> <span t-field="o.partner_id.l10n_ar_afip_responsibility_type_id"/>
+                    </div>
+
+                    <t t-if="o.partner_id.vat and o.partner_id.l10n_latam_identification_type_id and o.partner_id.l10n_latam_identification_type_id.l10n_ar_afip_code != '99'">
+                        <div style="font-size: 0.9em;">
+                            <strong><t t-out="o.partner_id.l10n_latam_identification_type_id.name or o.company_id.account_fiscal_country_id.vat_label" id="inv_tax_id_label"/>:</strong>
+                            <span t-out="o.partner_id.l10n_ar_formatted_vat if o.partner_id.l10n_ar_vat else o.partner_id.vat"/>
+                        </div>
+                    </t>
+
+                </div>
+                <div class="col-5" style="padding-left: 12px;">
+
+                    <!-- Due Date - prominent -->
+                    <t t-if="o.invoice_date_due">
+                        <div style="margin-bottom: 6px;">
+                            <div style="font-size: 0.8em; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Vencimiento</div>
+                            <strong style="font-size: 1.05em;" t-field="o.invoice_date_due"/>
+                        </div>
+                    </t>
+
+                    <!-- Payment Terms -->
+                    <t t-if="o.invoice_payment_term_id" name="payment_term">
+                        <div style="font-size: 0.9em;">
+                            <strong>Cond. Pago:</strong>
+                            <span t-field="o.invoice_payment_term_id.name"/>
+                        </div>
+                    </t>
+
+                    <!-- Source -->
+                    <t t-if="o.invoice_origin">
+                        <div style="font-size: 0.9em;">
+                            <strong>Origen:</strong>
+                            <span t-field="o.invoice_origin"/>
+                        </div>
+                    </t>
+
+                    <!-- Reference -->
+                    <t t-if="o.ref">
+                        <div style="font-size: 0.9em;">
+                            <strong>Referencia:</strong>
+                            <span t-field="o.ref"/>
+                        </div>
+                    </t>
+
+                    <!-- Incoterm -->
+                    <t t-if="o.invoice_incoterm_id">
+                        <div style="font-size: 0.9em;">
+                            <strong>Incoterm:</strong>
+                            <span t-if="o.incoterm_location">
+                                <span t-field="o.invoice_incoterm_id.code"/>
+                                <span t-field="o.incoterm_location"/>
+                            </span>
+                            <span t-else="" t-field="o.invoice_incoterm_id.name"/>
+                        </div>
+                    </t>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Replace the custom_footer to include CAE and QR code -->
         <t t-set="custom_footer" position="replace">
             <t t-set="custom_footer">
                 <div class="row" style="font-size: 0.85em;">
-                    <!-- CAE + Barcode row -->
+                    <!-- CAE + QR row -->
                     <t t-if="o.l10n_ar_arca_cae">
-                        <div class="col-4 text-start">
-                            <strong>CAE Nro:</strong> <span t-field="o.l10n_ar_arca_cae"/><br/>
-                            <strong>Fecha Vto CAE:</strong>
+                        <div class="col-3 text-start" style="padding-top: 4px;">
+                            <t t-if="o.l10n_ar_arca_qr_code">
+                                <img t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=150&amp;height=150' % o.l10n_ar_arca_qr_code"
+                                    style="width: 90px; height: 90px;"
+                                    alt="ARCA QR Code"/>
+                            </t>
+                        </div>
+                        <div class="col-5 text-start" style="padding-top: 10px;">
+                            <strong>C.A.E. N°:</strong> <span t-field="o.l10n_ar_arca_cae"/><br/>
+                            <strong>Fecha Vto. CAE:</strong>
                             <t t-set="cae_due" t-value="o.l10n_ar_arca_cae_due_date"/>
                             <span t-if="cae_due and len(cae_due) == 8"
                                 t-out="'%s/%s/%s' % (cae_due[6:8], cae_due[4:6], cae_due[0:4])"/>
                             <span t-else="" t-out="cae_due"/>
-                        </div>
-                        <div class="col-4 text-center" t-if="o.l10n_ar_arca_barcode">
-                            <img t-att-src="'/report/barcode/?barcode_type=I2of5&amp;value=%s&amp;width=600&amp;height=120&amp;humanreadable=1' % o.l10n_ar_arca_barcode"
-                                style="width: 300px; height: auto; image-rendering: -webkit-optimize-contrast;"
-                                alt="ARCA Barcode"/>
                         </div>
                         <div name="footer_right_column" class="col-4 text-end">
                             <div name="pager" t-if="report_type == 'pdf'">

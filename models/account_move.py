@@ -1,5 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import base64
+import json
 import logging
 
 from odoo import api, fields, models, _
@@ -72,6 +74,12 @@ class AccountMove(models.Model):
         readonly=True,
         copy=False,
         help="Barcode data for Interleaved 2 of 5 code on invoice PDF.",
+    )
+    l10n_ar_arca_qr_code = fields.Char(
+        string="ARCA QR Code",
+        readonly=True,
+        copy=False,
+        help="URL for ARCA QR code verification (RG 4892/2020).",
     )
 
     def action_request_cae(self):
@@ -168,6 +176,11 @@ class AccountMove(models.Model):
             certificate, doc_type_code, journal, result
         )
 
+        # Build QR code URL (RG 4892/2020)
+        qr_url = self._build_arca_qr_code(
+            certificate, doc_type_code, journal, next_number, result
+        )
+
         # Store results
         observations = ""
         if result.get("observations"):
@@ -182,6 +195,7 @@ class AccountMove(models.Model):
             "l10n_ar_arca_result": result["result"],
             "l10n_ar_arca_observations": observations or False,
             "l10n_ar_arca_barcode": barcode,
+            "l10n_ar_arca_qr_code": qr_url,
         })
 
     def _get_arca_doc_type_code(self):
@@ -397,3 +411,54 @@ class AccountMove(models.Model):
         check_digit = (10 - (total % 10)) % 10
 
         return f"{barcode_data}{check_digit}"
+
+    def _build_arca_qr_code(
+        self, certificate, doc_type_code, journal, invoice_number, cae_result
+    ):
+        """
+        Build the ARCA QR code URL per RG 4892/2020.
+
+        The QR encodes a JSON payload in base64:
+        https://www.afip.gob.ar/fe/qr/?p={base64_json}
+        """
+        if not cae_result.get("cae") or not cae_result.get("cae_due_date"):
+            return False
+
+        cuit = certificate.cuit.replace("-", "").replace(" ", "")
+        invoice_date = self.invoice_date or fields.Date.today()
+
+        # Customer document
+        partner = self.partner_id.commercial_partner_id
+        customer_doc_type, customer_doc_number = self._get_arca_customer_doc(
+            partner
+        )
+
+        # Currency code (PES = Argentine Peso)
+        currency_code = "PES"
+        currency_rate = 1
+        if self.currency_id != self.company_currency_id:
+            currency_code = (
+                self.currency_id.l10n_ar_afip_code or "PES"
+            )
+            currency_rate = self.currency_id.rate or 1
+
+        qr_data = {
+            "ver": 1,
+            "fecha": invoice_date.strftime("%Y-%m-%d"),
+            "cuit": int(cuit),
+            "ptoVta": journal.l10n_ar_afip_pos_number,
+            "tipoCmp": doc_type_code,
+            "nroCmp": invoice_number,
+            "importe": round(abs(self.amount_total), 2),
+            "moneda": currency_code,
+            "ctz": currency_rate,
+            "tipoDocRec": customer_doc_type,
+            "nroDocRec": customer_doc_number,
+            "tipoCodAut": "E",  # E = CAE
+            "codAut": int(cae_result["cae"]),
+        }
+
+        json_str = json.dumps(qr_data, separators=(",", ":"))
+        encoded = base64.b64encode(json_str.encode("utf-8")).decode("utf-8")
+
+        return f"https://www.afip.gob.ar/fe/qr/?p={encoded}"
