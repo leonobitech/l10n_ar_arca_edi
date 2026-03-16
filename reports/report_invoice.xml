@@ -6,9 +6,36 @@
     <!-- ============================================================ -->
     <template id="custom_header" inherit_id="l10n_ar.custom_header">
 
-        <!-- Make company name more prominent -->
-        <xpath expr="//span[@t-field='o.company_id.partner_id.name']" position="replace">
-            <strong style="font-size: 1.3em;" t-field="o.company_id.partner_id.name"/>
+        <!-- Replace company info (left side) with structured layout -->
+        <xpath expr="//div[@style='padding-right: 0px;']" position="replace">
+            <div class="col-6" style="padding-right: 0px;">
+                <t t-if="not pre_printed_report">
+                    <!-- Company name - prominent -->
+                    <strong style="font-size: 1.3em;" t-field="o.company_id.partner_id.name"/>
+
+                    <!-- Address - smaller -->
+                    <div style="font-size: 0.80em; margin-top: 2px;">
+                        <t t-out="', '.join([item for item in [header_address.street, header_address.street2, header_address.city] if item])"/>
+                    </div>
+                    <div style="font-size: 0.80em;">
+                        <t t-out="', '.join([item for item in [header_address.state_id and header_address.state_id.name, header_address.country_id and header_address.country_id.name] if item])"/><t t-if="header_address.zip" t-out="'.'"/>
+                    </div>
+
+                    <!-- Contact info -->
+                    <div style="margin-top: 3px; font-size: 0.9em;">
+                        <span t-if="header_address.phone" style="white-space: nowrap;">
+                            <strong>Tel:</strong> <span t-out="header_address.phone"/>
+                        </span>
+                        <div t-if="header_address.email">
+                            <strong>Email:</strong> <span t-out="header_address.email"/>
+                        </div>
+                        <div t-if="header_address.website">
+                            <span t-att-style="'color: %s;' % o.company_id.primary_color"
+                                t-out="(header_address.website or '').replace('https://', '').replace('http://', '')"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
         </xpath>
 
         <!-- Replace right side: invoice number, date, fiscal data -->
