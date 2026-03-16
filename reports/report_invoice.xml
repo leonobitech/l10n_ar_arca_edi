@@ -5,37 +5,44 @@
     <template id="report_invoice_document"
         inherit_id="l10n_ar.report_invoice_document">
 
-        <!-- Add CAE and barcode section after QR code and tax details -->
-        <div id="qrcode" position="after">
-            <t t-if="o.l10n_ar_arca_cae">
-                <div class="row mt-3 mb-3" style="page-break-inside: avoid;">
-                    <!-- CAE Info (left) -->
-                    <div class="col-6">
-                        <table class="table table-sm table-borderless" style="font-size: 0.85em;">
-                            <tr>
-                                <td><strong>CAE Nro:</strong></td>
-                                <td><span t-field="o.l10n_ar_arca_cae"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Fecha Vto CAE:</strong></td>
-                                <td>
-                                    <t t-set="cae_due" t-value="o.l10n_ar_arca_cae_due_date"/>
-                                    <span t-if="cae_due and len(cae_due) == 8"
-                                        t-out="'%s/%s/%s' % (cae_due[6:8], cae_due[4:6], cae_due[0:4])"/>
-                                    <span t-else="" t-out="cae_due"/>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <!-- Barcode (right) -->
-                    <div class="col-6 text-end" t-if="o.l10n_ar_arca_barcode">
-                        <img t-att-src="'/report/barcode/?barcode_type=I2of5&amp;value=%s&amp;width=380&amp;height=50&amp;humanreadable=1' % o.l10n_ar_arca_barcode"
-                            style="max-width: 100%;"
-                            alt="ARCA Barcode"/>
-                    </div>
+        <!-- Replace the custom_footer to include CAE and barcode -->
+        <t t-set="custom_footer" position="replace">
+            <t t-set="custom_footer">
+                <div class="row" style="font-size: 0.85em;">
+                    <!-- CAE + Barcode row -->
+                    <t t-if="o.l10n_ar_arca_cae">
+                        <div class="col-4 text-start">
+                            <strong>CAE Nro:</strong> <span t-field="o.l10n_ar_arca_cae"/><br/>
+                            <strong>Fecha Vto CAE:</strong>
+                            <t t-set="cae_due" t-value="o.l10n_ar_arca_cae_due_date"/>
+                            <span t-if="cae_due and len(cae_due) == 8"
+                                t-out="'%s/%s/%s' % (cae_due[6:8], cae_due[4:6], cae_due[0:4])"/>
+                            <span t-else="" t-out="cae_due"/>
+                        </div>
+                        <div class="col-4 text-center" t-if="o.l10n_ar_arca_barcode">
+                            <img t-att-src="'/report/barcode/?barcode_type=I2of5&amp;value=%s&amp;width=600&amp;height=120&amp;humanreadable=1' % o.l10n_ar_arca_barcode"
+                                style="width: 300px; height: auto; image-rendering: -webkit-optimize-contrast;"
+                                alt="ARCA Barcode"/>
+                        </div>
+                        <div name="footer_right_column" class="col-4 text-end">
+                            <div name="pager" t-if="report_type == 'pdf'">
+                                Page: <span class="page"/> / <span class="topage"/>
+                            </div>
+                        </div>
+                    </t>
+                    <!-- Fallback when no CAE -->
+                    <t t-else="">
+                        <div name="footer_left_column" class="col-8 text-start">
+                        </div>
+                        <div name="footer_right_column" class="col-4 text-end">
+                            <div name="pager" t-if="report_type == 'pdf'">
+                                Page: <span class="page"/> / <span class="topage"/>
+                            </div>
+                        </div>
+                    </t>
                 </div>
             </t>
-        </div>
+        </t>
 
     </template>
 
