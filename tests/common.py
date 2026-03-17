@@ -139,6 +139,19 @@ class ArcaEdiTestCommon(TransactionCase):
             "l10n_ar_afip_responsibility_type_id": cls.resp_mono.id,
         })
 
+        # -- Revenue account (needed for invoice lines) --
+        cls.account_revenue = cls.env['account.account'].search([
+            ('account_type', '=', 'income'),
+            ('company_id', '=', cls.company.id),
+        ], limit=1)
+        if not cls.account_revenue:
+            cls.account_revenue = cls.env['account.account'].create({
+                'name': 'Test Revenue',
+                'code': '400000',
+                'account_type': 'income',
+                'company_id': cls.company.id,
+            })
+
         # -- Document types (Factura C = 11, Nota de Credito C = 13) --
         LatamDocType = cls.env["l10n_latam.document.type"]
 

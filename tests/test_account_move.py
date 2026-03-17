@@ -41,7 +41,13 @@ class TestAccountMoveArcaDocType(ArcaEdiTestCommon):
 
     def test_get_arca_doc_type_code_nota_credito_c(self):
         """Nota de Credito C (code 13) is a supported ARCA doc type."""
-        move = self._create_move(self.doc_type_nc_c)
+        move = self.env["account.move"].with_company(self.company).create({
+            "move_type": "out_refund",
+            "journal_id": self.journal.id,
+            "partner_id": self.partner_cf.id,
+            "invoice_date": datetime.date(2026, 3, 15),
+            "l10n_latam_document_type_id": self.doc_type_nc_c.id,
+        })
         code = move._get_arca_doc_type_code()
         self.assertEqual(code, 13)
 
@@ -90,6 +96,7 @@ class TestAccountMoveArcaConceptType(ArcaEdiTestCommon):
                     "product_id": self._create_product(pt).id,
                     "quantity": 1,
                     "price_unit": 100.0,
+                    "account_id": self.account_revenue.id,
                 })
                 for i, pt in enumerate(product_types)
             ],
@@ -124,6 +131,7 @@ class TestAccountMoveArcaConceptType(ArcaEdiTestCommon):
                     "name": "Generic line",
                     "quantity": 1,
                     "price_unit": 50.0,
+                    "account_id": self.account_revenue.id,
                 })
             ],
         })
@@ -257,6 +265,7 @@ class TestAccountMoveArcaQrCode(ArcaEdiTestCommon):
                     "name": "Test Service",
                     "quantity": 1,
                     "price_unit": 1500.00,
+                    "account_id": self.account_revenue.id,
                 })
             ],
         })
@@ -384,6 +393,7 @@ class TestAccountMoveArcaPrepareData(ArcaEdiTestCommon):
                     "product_id": product.id,
                     "quantity": 2,
                     "price_unit": 500.00,
+                    "account_id": self.account_revenue.id,
                 })
             ],
         })

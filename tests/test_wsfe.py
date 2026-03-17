@@ -245,16 +245,13 @@ class TestWsfeGetClient(ArcaEdiTestCommon):
 class TestWsfeGetAuth(ArcaEdiTestCommon):
     """Test _get_auth() builds the correct Auth dict."""
 
-    @patch.object(
-        type(MagicMock()),  # dummy, we patch the actual model method below
-        "_get_or_refresh_token",
-    )
     def test_get_auth_structure(self):
         """Auth dict contains Token, Sign, and Cuit as integer."""
         wsfe = self.env["l10n_ar.arca.wsfe"]
+        WsaaModel = type(self.env["l10n_ar.arca.wsaa"])
 
         with patch.object(
-            type(self.env["l10n_ar.arca.wsaa"]),
+            WsaaModel,
             "_get_or_refresh_token",
             return_value={"token": "TEST_TOKEN", "sign": "TEST_SIGN"},
         ):
