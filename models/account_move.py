@@ -118,7 +118,12 @@ class AccountMove(models.Model):
         arca_cae = result.CodAutorizacion if hasattr(result, 'CodAutorizacion') else None
         arca_result = result.Resultado if hasattr(result, 'Resultado') else None
         arca_total = result.ImpTotal if hasattr(result, 'ImpTotal') else None
-        arca_date = result.CbteFch if hasattr(result, 'CbteFch') else None
+        raw_date = result.CbteFch if hasattr(result, 'CbteFch') else None
+        arca_date = (
+            f"{raw_date[6:8]}/{raw_date[4:6]}/{raw_date[0:4]}"
+            if raw_date and len(str(raw_date)) == 8
+            else raw_date
+        )
 
         env_label = "Testing" if certificate.environment == "testing" else "Production"
 
