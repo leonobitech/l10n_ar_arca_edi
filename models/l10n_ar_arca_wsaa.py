@@ -1,4 +1,5 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Copyright 2026 Leonobitech
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 import base64
 import datetime

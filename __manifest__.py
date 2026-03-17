@@ -1,9 +1,11 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Copyright 2026 Leonobitech
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 {
     "name": "Argentina - ARCA Electronic Invoicing",
     "version": "19.0.1.0.0",
     "category": "Accounting/Localizations",
     "summary": "Electronic invoicing integration with ARCA (ex-AFIP) for Argentina",
+    "development_status": "Beta",
     "description": """
 Argentina ARCA Electronic Invoicing
 ====================================
@@ -36,9 +38,10 @@ ARCA Web Services:
 * WSAA - Web Service de Autenticación y Autorización
 * WSFEv1 - Web Service de Factura Electrónica v1
     """,
-    "author": "Leonobitech",
-    "website": "https://github.com/leonobitech/l10n_ar_arca_edi",
-    "license": "LGPL-3",
+    "author": "Leonobitech, Odoo Community Association (OCA)",
+    "website": "https://github.com/OCA/l10n-argentina",
+    "license": "AGPL-3",
+    "maintainers": ["felixfigueroa"],
     "countries": ["ar"],
     "depends": [
         "l10n_ar",
