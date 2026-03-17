@@ -114,7 +114,8 @@ class AccountMove(models.Model):
             ) from e
 
         # Compare CAE from ARCA with local CAE
-        arca_cae = result.CAE if hasattr(result, 'CAE') else None
+        # FECompConsultar returns CodAutorizacion, not CAE
+        arca_cae = result.CodAutorizacion if hasattr(result, 'CodAutorizacion') else None
         arca_result = result.Resultado if hasattr(result, 'Resultado') else None
         arca_total = result.ImpTotal if hasattr(result, 'ImpTotal') else None
         arca_date = result.CbteFch if hasattr(result, 'CbteFch') else None
