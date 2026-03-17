@@ -7,6 +7,7 @@ import json
 
 from unittest.mock import patch, MagicMock
 
+from odoo import Command
 from odoo.exceptions import UserError
 from odoo.tests import tagged
 
@@ -79,7 +80,6 @@ class TestAccountMoveArcaConceptType(ArcaEdiTestCommon):
         return self.env["product.product"].create({
             "name": f"Test {product_type}",
             "type": product_type,
-            "company_id": self.company.id,
         })
 
     def _create_move_with_lines(self, product_types):
@@ -91,12 +91,11 @@ class TestAccountMoveArcaConceptType(ArcaEdiTestCommon):
             "invoice_date": datetime.date(2026, 3, 15),
             "l10n_latam_document_type_id": self.doc_type_fc.id,
             "invoice_line_ids": [
-                (0, 0, {
+                Command.create({
                     "name": f"Line {i}",
                     "product_id": self._create_product(pt).id,
                     "quantity": 1,
                     "price_unit": 100.0,
-                    "account_id": self.account_revenue.id,
                 })
                 for i, pt in enumerate(product_types)
             ],
@@ -127,11 +126,10 @@ class TestAccountMoveArcaConceptType(ArcaEdiTestCommon):
             "invoice_date": datetime.date(2026, 3, 15),
             "l10n_latam_document_type_id": self.doc_type_fc.id,
             "invoice_line_ids": [
-                (0, 0, {
+                Command.create({
                     "name": "Generic line",
                     "quantity": 1,
                     "price_unit": 50.0,
-                    "account_id": self.account_revenue.id,
                 })
             ],
         })
@@ -261,11 +259,10 @@ class TestAccountMoveArcaQrCode(ArcaEdiTestCommon):
             "invoice_date": datetime.date(2026, 3, 15),
             "l10n_latam_document_type_id": self.doc_type_fc.id,
             "invoice_line_ids": [
-                (0, 0, {
+                Command.create({
                     "name": "Test Service",
                     "quantity": 1,
                     "price_unit": 1500.00,
-                    "account_id": self.account_revenue.id,
                 })
             ],
         })
@@ -379,7 +376,6 @@ class TestAccountMoveArcaPrepareData(ArcaEdiTestCommon):
         product = self.env["product.product"].create({
             "name": "Test Product",
             "type": product_type,
-            "company_id": self.company.id,
         })
         move = self.env["account.move"].with_company(self.company).create({
             "move_type": "out_invoice",
@@ -388,12 +384,11 @@ class TestAccountMoveArcaPrepareData(ArcaEdiTestCommon):
             "invoice_date": datetime.date(2026, 3, 15),
             "l10n_latam_document_type_id": (doc_type or self.doc_type_fc).id,
             "invoice_line_ids": [
-                (0, 0, {
+                Command.create({
                     "name": "Test Line",
                     "product_id": product.id,
                     "quantity": 2,
                     "price_unit": 500.00,
-                    "account_id": self.account_revenue.id,
                 })
             ],
         })

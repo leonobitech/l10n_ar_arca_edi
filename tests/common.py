@@ -140,15 +140,27 @@ class ArcaEdiTestCommon(TransactionCase):
         })
 
         # -- Revenue account (needed for invoice lines) --
+        # In Odoo 19, account.account uses company_ids (M2M) instead of
+        # company_id, so we search without company filter.
         cls.account_revenue = cls.env['account.account'].search([
             ('account_type', '=', 'income'),
         ], limit=1)
+        if not cls.account_revenue:
+            cls.account_revenue = cls.env['account.account'].search([
+                ('account_type', '=', 'income_other'),
+            ], limit=1)
         if not cls.account_revenue:
             cls.account_revenue = cls.env['account.account'].create({
                 'name': 'Test Revenue',
                 'code': '400000',
                 'account_type': 'income',
             })
+
+        # Set income account on the default product category so that
+        # invoice lines auto-resolve the account from the product.
+        default_categ = cls.env.ref('product.product_category_all', raise_if_not_found=False)
+        if default_categ:
+            default_categ.with_company(cls.company).property_account_income_categ_id = cls.account_revenue
 
         # -- Document types (Factura C = 11, Nota de Credito C = 13) --
         LatamDocType = cls.env["l10n_latam.document.type"]
