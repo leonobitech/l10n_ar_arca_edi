@@ -27,15 +27,12 @@ class ArcaEdiTestCommon(TransactionCase):
         # -- Country --
         cls.country_ar = cls.env.ref("base.ar")
 
-        # -- Company --
-        cls.company = cls.env["res.company"].create({
-            "name": "Test Company AR",
+        # -- Company: use existing company (has Chart of Accounts) --
+        cls.company = cls.env.company
+        cls.company.write({
             "country_id": cls.country_ar.id,
             "currency_id": cls.env.ref("base.ARS").id,
         })
-
-        # Switch to the test company for subsequent record creation
-        cls.env = cls.env(context=dict(cls.env.context, allowed_company_ids=[cls.company.id]))
 
         # -- Mock certificate (no real keys, just enough data for logic tests) --
         # We use a dummy PEM-like base64 for private_key / certificate fields.
