@@ -142,14 +142,12 @@ class ArcaEdiTestCommon(TransactionCase):
         # -- Revenue account (needed for invoice lines) --
         cls.account_revenue = cls.env['account.account'].search([
             ('account_type', '=', 'income'),
-            ('company_id', '=', cls.company.id),
         ], limit=1)
         if not cls.account_revenue:
             cls.account_revenue = cls.env['account.account'].create({
                 'name': 'Test Revenue',
                 'code': '400000',
                 'account_type': 'income',
-                'company_id': cls.company.id,
             })
 
         # -- Document types (Factura C = 11, Nota de Credito C = 13) --
