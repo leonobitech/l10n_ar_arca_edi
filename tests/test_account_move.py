@@ -94,6 +94,7 @@ class TestAccountMoveArcaConceptType(ArcaEdiTestCommon):
                 Command.create({
                     "name": f"Line {i}",
                     "product_id": self._create_product(pt).id,
+                    "account_id": self.account_revenue.id,
                     "quantity": 1,
                     "price_unit": 100.0,
                 })
@@ -128,6 +129,7 @@ class TestAccountMoveArcaConceptType(ArcaEdiTestCommon):
             "invoice_line_ids": [
                 Command.create({
                     "name": "Generic line",
+                    "account_id": self.account_revenue.id,
                     "quantity": 1,
                     "price_unit": 50.0,
                 })
@@ -261,6 +263,7 @@ class TestAccountMoveArcaQrCode(ArcaEdiTestCommon):
             "invoice_line_ids": [
                 Command.create({
                     "name": "Test Service",
+                    "account_id": self.account_revenue.id,
                     "quantity": 1,
                     "price_unit": 1500.00,
                 })
@@ -387,6 +390,7 @@ class TestAccountMoveArcaPrepareData(ArcaEdiTestCommon):
                 Command.create({
                     "name": "Test Line",
                     "product_id": product.id,
+                    "account_id": self.account_revenue.id,
                     "quantity": 2,
                     "price_unit": 500.00,
                 })
