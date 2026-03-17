@@ -39,7 +39,7 @@ ARCA Web Services:
 * WSFEv1 - Web Service de Factura Electrónica v1
     """,
     "author": "Leonobitech, Odoo Community Association (OCA)",
-    "website": "https://github.com/OCA/l10n-argentina",
+    "website": "https://github.com/leonobitech/l10n_ar_arca_edi",
     "license": "AGPL-3",
     "maintainers": ["felixfigueroa"],
     "countries": ["ar"],

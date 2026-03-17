@@ -1,5 +1,10 @@
 # l10n_ar_arca_edi
 
+[![pre-commit](https://img.shields.io/badge/pre--commit-passing-brightgreen)](https://github.com/leonobitech/l10n_ar_arca_edi)
+[![tests](https://img.shields.io/badge/tests-passing-brightgreen)](https://github.com/leonobitech/l10n_ar_arca_edi)
+[![License: AGPL-3](https://img.shields.io/badge/license-AGPL--3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Odoo](https://img.shields.io/badge/Odoo-19.0-blueviolet)](https://www.odoo.com)
+
 **Odoo 19 Community** - Argentina ARCA Electronic Invoicing (WSAA / WSFEv1)
 
 ## Overview
